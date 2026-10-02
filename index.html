@@ -1,0 +1,4599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff7a00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Feli Food">   
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feli Food</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(135deg, #ff5a00, #ff9d00);
+      color: white;
+      padding: 25px 6%;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .cart {
+      background: white;
+      color: #ff5a00;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 35px 10px 20px;
+    }
+
+    .hero h1 {
+      font-size: 35px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 17px;
+    }
+
+    .search-box {
+      max-width: 650px;
+      margin: 25px auto 0;
+      display: flex;
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      padding: 16px 20px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .search-box button {
+      border: none;
+      background: #222;
+      color: white;
+      padding: 0 25px;
+      cursor: pointer;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 35px 20px;
+    }
+
+    .restaurant-register-button {
+      text-align: center;
+      margin: 25px 20px;
+    }
+
+    .restaurant-register-button button {
+      background: #ff5a00;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .restaurant-form {
+      display: none;
+      max-width: 600px;
+      margin: 20px auto 35px;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    }
+
+    .restaurant-form h2 {
+      margin-bottom: 20px;
+      color: #ff5a00;
+    }
+
+    .restaurant-form input,
+    .restaurant-form textarea {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .restaurant-form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .restaurant-form button {
+      width: 100%;
+      padding: 13px;
+      background: #ff5a00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .cancel-register {
+      background: #222 !important;
+      margin-top: 8px;
+    }
+
+    .section-title {
+      margin-bottom: 20px;
+      font-size: 25px;
+    }
+
+    .restaurants {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .restaurant {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+
+    .restaurant:hover {
+      transform: translateY(-4px);
+    }
+
+    .restaurant-image {
+      height: 150px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      background: #fff0e6;
+    }
+.restaurant-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+    .restaurant-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    line-height: 1.2;
+    color: #333;
+}
+ 
+    .restaurant-info p {
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .restaurant-info button {
+      background: #ff5a00;
+      color: white;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .menu {
+      display: none;
+      margin-top: 35px;
+    }
+
+    .menu.active {
+      display: block;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #222;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .foods {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+    }
+
+    .food {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+
+    .food-image {
+      height: 110px;
+      background: #fff4ec;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 55px;
+      margin-bottom: 15px;
+    }
+
+    .food h3 {
+      margin-bottom: 7px;
+    }
+
+    .price {
+      color: #ff5a00;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .food button {
+      width: 100%;
+      border: none;
+      background: #ff5a00;
+      color: white;
+      padding: 11px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .cart-panel {
+      position: fixed;
+      right: -400px;
+      top: 0;
+      width: 370px;
+      max-width: 90%;
+      height: 100vh;
+      background: white;
+      z-index: 100;
+      box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+      padding: 25px;
+      transition: 0.3s;
+      overflow-y: auto;
+    }
+
+    .cart-panel.open {
+      right: 0;
+    }
+
+    .cart-panel h2 {
+      margin-bottom: 20px;
+    }
+
+    .cart-item {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 0;
+    }
+
+    .cart-item strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .remove {
+      color: red;
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .total {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+
+    .checkout {
+      width: 100%;
+      padding: 14px;
+      background: #ff5a00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close-cart {
+      float: right;
+      border: none;
+      background: #222;
+      color: white;
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .checkout-form {
+      display: none;
+      max-width: 600px;
+      margin: 25px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    }
+
+    .checkout-form h2 {
+      margin-bottom: 20px;
+      color: #ff5a00;
+    }
+
+    .checkout-form input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .checkout-form button {
+      width: 100%;
+      padding: 13px;
+      background: #ff5a00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 40px;
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+      padding: 30px 0;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .top {
+        flex-direction: column;
+      }
+
+      .cart-panel {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  .order-card {
+  padding: 15px;
+  margin: 12px 0;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: white;
+}
+
+.order-card.status-pending {
+  border-left: 6px solid orange;
+}
+
+.order-card.status-accepted {
+  border-left: 6px solid blue;
+}
+
+.order-card.status-preparing {
+  border-left: 6px solid purple;
+}
+
+.order-card.status-ready {
+  border-left: 6px solid green;
+}
+
+.order-card.status-delivered {
+  border-left: 6px solid #28a745;
+}
+
+.order-actions button {
+  padding: 8px 12px;
+  margin: 4px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.order-actions button:nth-child(1) {
+  background: orange;
+  color: white;
+}
+
+.order-actions button:nth-child(2) {
+  background: purple;
+  color: white;
+}
+
+.order-actions button:nth-child(3) {
+  background: green;
+  color: white;
+}
+
+.order-actions button:nth-child(4) {
+  background: #28a745;
+  color: white;
+}
+
+.order-actions button:hover {
+  opacity: 0.8;
+}  
+  </style>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+</head>
+
+<body>
+
+  <!-- RESTAURANT REGISTRATION BUTTON -->
+  <div class="restaurant-register-button">
+    <button type="button" onclick="showRestaurantForm()">
+      🍴 Join Feli as a Restaurant
+    </button>
+  </div>
+
+
+  <!-- RESTAURANT REGISTRATION FORM -->
+  <div class="restaurant-form" id="restaurantForm">
+
+    <h2>🏪 Join Feli Food as a Restaurant</h2>
+
+    <input
+      type="text"
+      id="restaurantName"
+      placeholder="Restaurant name"
+    >
+
+    <input
+      type="text"
+      id="ownerName"
+      placeholder="Owner name"
+    >
+<input
+    type="email"
+    id="restaurantOwnerEmail"
+    placeholder="Owner email"
+>
+
+<input
+    type="password"
+    id="restaurantOwnerPassword"
+    placeholder="Create password"
+>
+    <input
+      type="tel"
+      id="restaurantPhone"
+      placeholder="Phone number"
+    >
+
+    <input
+      type="text"
+      id="restaurantLocation"
+      placeholder="Restaurant location"
+    >
+<input
+    type="text"
+    id="restaurantImage"
+    placeholder="Restaurant image URL"
+/>
+<input
+    type="text"
+    id="restaurantBankName"
+    placeholder="Bank name"
+/>
+
+<input
+    type="text"
+    id="restaurantAccountName"
+    placeholder="Account holder name"
+/>
+
+<input
+    type="text"
+    id="restaurantAccountNumber"
+    placeholder="Account number"
+/>
+    <textarea
+      id="restaurantDescription"
+      placeholder="Tell us about your restaurant"
+    ></textarea>
+
+    <button type="button" onclick="registerRestaurant()">
+      Join Feli Food
+    </button>
+
+    <button
+      type="button"
+      class="cancel-register"
+      onclick="hideRestaurantForm()"
+    >
+      Cancel
+    </button>
+
+ </div>
+
+<!-- RESTAURANT OWNER LOGIN -->
+<div id="restaurantLoginSection" style="margin-top:20px;"></div>
+
+    <h2>🔐 Restaurant Owner Login</h2>
+
+    <input
+        type="email"
+        id="restaurantLoginEmail"
+        placeholder="Owner email"
+    >
+
+    <input
+        type="password"
+        id="restaurantLoginPassword"
+        placeholder="Password"
+    >
+
+    <button
+        type="button"
+        onclick="loginRestaurant()"
+    >
+        🔐 Sign In as Restaurant Owner
+    </button>
+<button
+    type="button"
+    onclick="forgotRestaurantPassword()"
+>
+    Forgot Password?
+</button>
+</div>
+<!-- FELI FOOD RIDER SECTION -->
+<section
+  id="riderSection"
+  style="
+    display:none;
+    max-width:900px;
+    margin:30px auto;
+    padding:25px;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.1);
+  "
+>
+
+  <h2>🚴 Feli Food Rider</h2>
+
+  <!-- RIDER LOGIN -->
+  <div id="riderLoginPanel">
+
+    <h3>Rider Login</h3>
+
+    <input
+      type="email"
+      id="riderLoginEmail"
+      placeholder="Rider email"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <input
+      type="password"
+      id="riderLoginPassword"
+      placeholder="Password"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <button
+      type="button"
+      onclick="loginRider()"
+      style="padding:12px 20px; margin-top:10px;"
+    >
+      🚴 Login
+    </button>
+
+    <button
+      type="button"
+      onclick="showRiderRegistration()"
+      style="padding:12px 20px; margin-top:10px;"
+    >
+      📝 Become a Rider
+    </button>
+
+  </div>
+
+
+  <!-- RIDER REGISTRATION -->
+  <div
+    id="riderRegistrationPanel"
+    style="display:none;"
+  >
+
+    <h3>📝 Register as a Feli Food Rider</h3>
+
+    <input
+      type="text"
+      id="riderName"
+      placeholder="Full name"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <input
+      type="email"
+      id="riderEmail"
+      placeholder="Email address"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <input
+      type="tel"
+      id="riderPhone"
+      placeholder="Phone number"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <input
+      type="text"
+      id="riderLocation"
+      placeholder="Your location"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <input
+      type="password"
+      id="riderPassword"
+      placeholder="Create password"
+      style="width:100%; padding:12px; margin:8px 0;"
+    >
+
+    <button
+      type="button"
+      onclick="registerRider()"
+      style="padding:12px 20px; margin-top:10px;"
+    >
+      🚴 Register Rider
+    </button>
+
+    <button
+      type="button"
+      onclick="showRiderLogin()"
+      style="padding:12px 20px; margin-top:10px;"
+    >
+      Back to Login
+    </button>
+
+  </div>
+
+
+  <!-- RIDER DASHBOARD -->
+  <div
+    id="riderDashboard"
+    style="display:none;"
+  >
+
+    <h3>🚴 Welcome, <span id="riderDisplayName"></span></h3>
+
+    <p>
+      <strong>Delivery Status:</strong>
+      <span id="riderAvailabilityStatus">
+        Offline
+      </span>
+    </p>
+
+    <button
+      type="button"
+      onclick="toggleRiderAvailability()"
+      id="riderAvailabilityButton"
+      style="padding:12px 20px;"
+    >
+      🟢 Go Online
+    </button>
+
+    <hr>
+
+    <h3>📦 Available Deliveries</h3>
+
+    <div id="riderAvailableOrders">
+      <p>No delivery orders available yet.</p>
+    </div>
+
+    <hr>
+
+    <h3>💰 My Earnings</h3>
+
+    <p>
+      Today's earnings:
+      <strong id="riderTodayEarnings">
+        GHS 0.00
+      </strong>
+    </p>
+
+    <p>
+      Completed deliveries:
+      <strong id="riderCompletedDeliveries">
+        0
+      </strong>
+    </p>
+
+    <button
+      type="button"
+      onclick="logoutRider()"
+      style="padding:12px 20px;"
+    >
+      🔓 Logout
+    </button>
+
+  </div>
+
+</section>
+
+<!-- ORDERS DASHBOARD -->
+<div id="ordersDashboard" class="orders-dashboard" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; overflow:auto; padding:20px; box-sizing:border-box;">
+
+    <h2>📋 Feli Food Orders</h2>
+    <button type="button" onclick="hideOrders()">← Back to Feli Food</button>
+    <div id="restaurantManagerPanel" style="margin:20px 0; padding:20px; background:#fff3e0; border-radius:12px;">
+    <h3>🏪 Restaurant Manager</h3>
+
+ <button type="button" onclick="showOrders()">📦 Manage Orders</button>
+<button type="button" onclick="window.showManagerMenu()">🍔 Manage Food</button>
+<button type="button" onclick="toggleRestaurantStatus()">🟢 Open / 🔴 Closed</button>
+ <button type="button" onclick="showManagerReviews(); document.getElementById('managerReviews').scrollIntoView({behavior:'smooth'});">⭐ Reviews</button>
+ <button type="button" onclick="showCommission()">💰 Commission</button>
+ <button type="button" onclick="logoutRestaurantOwner()">🔓 Logout</button>
+</div>
+
+   <div style="margin:15px 0;">
+    <input
+        type="text"
+        id="orderSearch"
+        placeholder="🔍 Search order, customer or phone..."
+        oninput="filterManagerOrders()"
+        style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;"
+    >
+</div>
+<select
+    id="orderStatusFilter"
+    onchange="filterManagerOrders()"
+    style="width:100%;padding:12px;margin-bottom:15px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;"
+>
+    <option value="">📋 All Orders</option>
+    <option value="Pending">🟡 Pending</option>
+    <option value="Accepted">🔵 Accepted</option>
+    <option value="Preparing">🟣 Preparing</option>
+    <option value="Ready">🟢 Ready</option>
+    <option value="Delivered">✅ Delivered</option>
+</select>
+<div id="ordersList"></div>
+    <h3 style="margin-top:20px;">⭐ Restaurant Reviews</h3>
+<div id="managerReviews">
+  <p>No reviews yet.</p>
+</div>
+<button type="button" onclick="showManagerReviews()">
+    ⭐ View Reviews
+</button>
+
+    <button type="button" onclick="hideOrders()">
+        Close Orders
+    </button>
+
+</div>
+  <!-- HEADER -->
+  <header>
+
+    <div class="top">
+
+      <div class="logo">
+        🍴 Feli Food
+      </div>
+
+      <button class="cart" onclick="openCart()">
+        🛒 Cart (<span id="cartCount">0</span>)
+      </button>
+<button class="orders-btn" onclick="showOrders()">
+    📋 Orders
+</button>
+<button class="my-orders-btn" onclick="showMyOrders()">
+    🧾 My Orders
+</button>
+    </div>
+
+    <div class="hero">
+
+      <h1>
+        Delicious food from many restaurants
+      </h1>
+
+      <p>
+        Choose a restaurant and order your favourite meal.
+      </p>
+
+      <div class="search-box">
+
+        <input
+          type="text"
+          id="search"
+          placeholder="Search restaurants..."
+          oninput="searchFood()"
+        >
+
+        <button onclick="searchFood()">
+          Search
+        </button>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- RESTAURANTS -->
+    <!-- CUSTOMER ACCOUNT -->
+<section id="customerAccountSection">
+    <h2 class="section-title">👤 Customer Account</h2>
+
+    <div class="account-box">
+        <h3>Sign in or create an account</h3>
+
+        <input
+            type="email"
+            id="customerEmail"
+            placeholder="Enter your email"
+        >
+
+        <input
+            type="password"
+            id="customerPassword"
+            placeholder="Enter your password"
+        >
+
+        <button onclick="signUpCustomer()">Create Account</button>
+        <button onclick="loginCustomer()">Sign In</button>
+        <button onclick="resetCustomerPassword()">Forgot Password?</button>
+
+        <p id="authMessage"></p>
+        <button
+    onclick="window.signOutCustomer()"
+    style="
+        margin-top:10px;
+        padding:10px 20px;
+        border:none;
+        border-radius:8px;
+        background:#e53935;
+        color:white;
+        font-weight:bold;
+        cursor:pointer;
+    "
+>
+    Sign Out
+</button>
+        <div id="customerProfile" style="margin-top:20px; padding:20px; border-radius:12px; background:#f5f5f5;">
+
+    <h2>👤 My Profile</h2>
+
+    <input
+        type="text"
+        id="profileName"
+        placeholder="Enter your full name"
+    >
+
+    <input
+        type="tel"
+        id="profilePhone"
+        placeholder="Enter your phone number"
+    >
+
+    <input
+        type="text"
+        id="profileAddress"
+        placeholder="Enter your delivery address"
+    >
+
+    <button onclick="saveCustomerProfile()">
+        Save Profile
+    </button>
+
+    <p id="profileMessage"></p>
+
+</div>
+    </div>
+</section> 
+    <section id="restaurantSection">
+
+      <h2 class="section-title">
+        🏪 Restaurants on Feli
+      </h2>
+
+      <div class="restaurants" id="restaurants">
+
+        <!-- Feli Kitchen -->
+        <div class="restaurant" data-name="Feli Kitchen">
+
+       <div class="restaurant-image">
+    <img src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=800&q=80" alt="Feli Kitchen">
+</div>   
+
+          <div class="restaurant-info">
+
+            <h3>
+              Feli Kitchen
+            </h3>
+
+            <p>
+              Local Ghanaian meals
+            </p>
+
+            <button onclick="showMenu('Feli Kitchen')">
+              View Menu
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Mama's Kitchen -->
+        <div class="restaurant" data-name="Mama's Kitchen">
+
+          <div class="restaurant-image">
+    <img src="YOUR_IMAGE_URL_HERE" alt="Mama's Kitchen">
+</div>
+
+          <div class="restaurant-info">
+
+            <h3>
+              Mama's Kitchen
+            </h3>
+
+            <p>
+              Fresh homemade meals
+            </p>
+
+            <button onclick="showMenu('Mama’s Kitchen')">
+              View Menu
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Pizza House -->
+        <div class="restaurant" data-name="Pizza House">
+
+          <div class="restaurant-image">
+            🍕
+          </div>
+
+          <div class="restaurant-info">
+
+            <h3>
+              Pizza House
+            </h3>
+
+            <p>
+              Pizza, drinks and sides
+            </p>
+
+            <button onclick="showMenu('Pizza House')">
+              View Menu
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Burger Spot -->
+        <div class="restaurant" data-name="Burger Spot">
+
+          <div class="restaurant-image">
+            🍔
+          </div>
+
+          <div class="restaurant-info">
+
+            <h3>
+              Burger Spot
+            </h3>
+
+            <p>
+              Burgers, fries and chicken
+            </p>
+
+            <button onclick="showMenu('Burger Spot')">
+              View Menu
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- MENU -->
+    <section class="menu" id="menuSection">
+
+      <div class="menu-header">
+
+        <div>
+
+          <!-- IMPORTANT:
+               This ID is now different from the restaurant form input -->
+          <h2 id="menuRestaurantName">
+            Restaurant
+          </h2>
+
+        <p id="menuRestaurantMessage">
+    Choose your food
+        </p>
+          
+        </div>
+
+        <button
+          class="back-btn"
+          onclick="backToRestaurants()"
+        >
+          ← Back
+        </button>
+
+      </div>
+
+      <div class="foods" id="foods"></div>
+
+    </section>
+<!-- MY ORDERS SECTION -->
+<section id="myOrdersSection" style="display:none; padding:30px;">
+    <h2>📋 My Orders</h2>
+
+    <div id="myOrdersList"></div>
+
+    <button onclick="closeMyOrders()">
+        ← Back
+    </button>
+</section>
+
+    <!-- CHECKOUT FORM -->
+    <div class="checkout-form" id="checkoutForm">
+
+      <h2>
+        Complete Your Order
+      </h2>
+
+      <input
+        id="customerName"
+        type="text"
+        placeholder="Your name"
+      >
+
+      <input
+        id="customerPhone"
+        type="tel"
+        placeholder="Phone number"
+      >
+
+      <input
+        id="customerAddress"
+        type="text"
+        placeholder="Delivery address"
+      >
+<label style="display:block;margin-top:15px;font-weight:bold;">
+    Payment Method
+</label>
+
+<select id="paymentMethod" style="width:100%;padding:12px;margin:8px 0;">
+    <option value="">Select payment method</option>
+    <option value="Cash on Delivery">Cash on Delivery</option>
+    <option value="Mobile Money">Mobile Money</option>
+    <option value="Paystack">Pay with Paystack</option>
+</select>
+      <button onclick="placeOrder()">
+        Place Order
+      </button>
+
+    </div>
+
+  </main>
+
+
+  <!-- CART -->
+  <div class="cart-panel" id="cartPanel">
+
+    <button
+      class="close-cart"
+      onclick="closeCart()"
+    >
+      ✕
+    </button>
+
+    <h2>
+      🛒 Your Cart
+    </h2>
+
+    <div id="cartItems"></div>
+
+    <div class="total">
+
+      Total: GHS
+      <span id="cartTotal">
+        0.00
+      </span>
+
+    </div>
+
+    <button
+      class="checkout"
+      onclick="showCheckoutForm()"
+    >
+      Proceed to Order
+    </button>
+
+  </div>
+
+
+  <!-- FOOTER -->
+  <footer>
+
+    <h2>
+      🍴 Feli Food
+    </h2>
+
+    <p>
+      Many restaurants. One platform. Easy food delivery.
+    </p>
+
+    <br>
+
+    <p>
+      © 2026 Feli Food
+    </p>
+
+  </footer>
+
+<!-- ADD FOOD SECTION -->
+<section id="addFoodSection" style="padding:30px; max-width:600px; margin:auto;">
+  <h2>🍽️ Add Food to Your Restaurant</h2>
+
+  <input
+    type="text"
+    id="foodName"
+    placeholder="Food name"
+    style="width:100%; padding:15px; margin:8px 0;"
+  >
+
+  <input
+    type="number"
+    id="foodPrice"
+    placeholder="Price (GHS)"
+    style="width:100%; padding:15px; margin:8px 0;"
+  >
+
+  <input
+    type="text"
+    id="foodCategory"
+    placeholder="Category e.g. Rice, Chicken, Drinks"
+    style="width:100%; padding:15px; margin:8px 0;"
+  >
+<input
+    type="file"
+    id="foodImage"
+    accept="image/*"
+    style="width:100%;padding:12px;margin:10px 0;"
+>
+  <textarea
+    id="foodDescription"
+    placeholder="Describe the food"
+    style="width:100%; padding:15px; margin:8px 0; min-height:100px;"
+  ></textarea>
+<div style="margin:10px 0;">
+    <label style="display:block; margin-bottom:5px;">
+        Food Extras (optional)
+    </label>
+
+    <input
+        type="text"
+        id="foodExtras"
+        placeholder="e.g. Extra beef - 5, Extra egg - 3, Extra shito - 2"
+        style="width:100%; padding:15px; margin:8px 0;"
+    >
+</div>
+  <input
+    type="text"
+    id="foodRestaurant"
+    placeholder="Restaurant name"
+    style="width:100%; padding:15px; margin:8px 0;"
+  >
+
+  <button
+    onclick="addFoodToFirebase()"
+    style="width:100%; padding:15px; margin-top:10px;"
+  >
+    ➕ Add Food
+  </button>
+</section>
+  <!-- JAVASCRIPT -->
+  <script>
+window.showManagerMenu = function() {
+  document.getElementById("ordersDashboard").style.display = "none";
+    const addFoodSection = document.getElementById("addFoodSection");
+
+    if (addFoodSection) {
+        addFoodSection.style.display = "block";
+        addFoodSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+    /* =========================
+       CART
+    ========================= */
+
+    let cart = [];
+
+function addToCart(restaurant, food, price, restaurantId) {
+
+    const alreadyInCart = cart.some(item =>
+        item.restaurant === restaurant &&
+        item.food === food
+    );
+
+    if (alreadyInCart) {
+        alert(food + " is already in your cart! 🛒");
+        return;
+    }
+
+    // Allow only one restaurant per order
+    if (
+        cart.length > 0 &&
+        cart.some(item => item.restaurantId !== restaurantId)
+    ) {
+        alert(
+            "Your cart contains food from another restaurant. " +
+            "Please clear your cart before ordering from " +
+            restaurant + "."
+        );
+        return;
+    }
+
+    cart.push({
+        restaurant: restaurant,
+        restaurantId: restaurantId,
+        food: food,
+        price: price
+    });
+
+    updateCart();
+
+    alert(food + " added to your cart! 🛒");
+}
+function updateCart() {
+
+    const cartCount = document.getElementById("cartCount");
+    const cartItems = document.getElementById("cartItems");
+    const cartTotal = document.getElementById("cartTotal");
+
+    if (!cartCount || !cartItems || !cartTotal) return;
+
+    cartCount.textContent = cart.length;
+
+    if (cart.length === 0) {
+        cartItems.innerHTML =
+            '<div class="empty">Your cart is empty.</div>';
+
+        cartTotal.textContent = "0.00";
+        return;
+    }
+
+    cartItems.innerHTML = "";
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+
+        total += item.price;
+
+        cartItems.innerHTML += `
+            <div class="cart-item">
+                <strong>${item.food}</strong>
+                <span>${item.restaurant}</span>
+                <br>
+                <span>GHS ${item.price.toFixed(2)}</span>
+                <br>
+                <button class="remove" onclick="removeItem(${index})">
+                    Remove
+                </button>
+            </div>
+        `;
+    });
+
+    cartTotal.textContent = total.toFixed(2);
+}
+
+
+function removeItem(index) {
+
+    cart.splice(index, 1);
+
+    updateCart();
+}
+
+
+function openCart() {
+
+    document.getElementById("cartPanel").classList.add("open");
+
+    updateCart();
+}
+
+
+function closeCart() {
+
+    document.getElementById("cartPanel").classList.remove("open");
+}
+    /* =========================
+       FOOD MENUS
+    ========================= */
+
+    const menus = {
+
+      "Feli Kitchen": [
+
+        {
+          name: "Jollof Rice & Chicken",
+          price: 45,
+          emoji: "🍗"
+        },
+
+        {
+          name: "Fried Rice & Chicken",
+          price: 45,
+          emoji: "🍚"
+        },
+
+        {
+          name: "Waakye",
+          price: 35,
+          emoji: "🍛"
+        }
+
+      ],
+
+
+      "Mama’s Kitchen": [
+
+        {
+          name: "Banku & Tilapia",
+          price: 60,
+          emoji: "🐟"
+        },
+
+        {
+          name: "Fufu & Soup",
+          price: 50,
+          emoji: "🍲"
+        },
+
+        {
+          name: "Yam & Egg",
+          price: 30,
+          emoji: "🥚"
+        }
+
+      ],
+
+
+      "Pizza House": [
+
+        {
+          name: "Chicken Pizza",
+          price: 65,
+          emoji: "🍕"
+        },
+
+        {
+          name: "Beef Pizza",
+          price: 70,
+          emoji: "🍕"
+        },
+
+        {
+          name: "Cheese Pizza",
+          price: 60,
+          emoji: "🧀"
+        }
+
+      ],
+
+
+      "Burger Spot": [
+
+        {
+          name: "Chicken Burger",
+          price: 45,
+          emoji: "🍔"
+        },
+
+        {
+          name: "Beef Burger",
+          price: 50,
+          emoji: "🍔"
+        },
+
+        {
+          name: "Chicken & Fries",
+          price: 55,
+          emoji: "🍟"
+        }
+
+      ]
+
+    };
+
+
+    /* =========================
+       SHOW RESTAURANT FORM
+    ========================= */ 
+    function showCheckoutForm() {
+    const checkoutForm = document.getElementById("checkoutForm");
+
+    if (!checkoutForm) {
+        alert("Checkout form not found.");
+        return;
+    }
+
+    checkoutForm.style.display = "block";
+    checkoutForm.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+ async function placeOrder() {
+    const name = document.getElementById("customerName").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+    const address = document.getElementById("customerAddress").value.trim();
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    
+    if (!paymentMethod) {
+    alert("Please select a payment method.");
+    return;
+}
+
+    if (!name || !phone || !address) {
+        alert("Please fill in your name, phone number and delivery address.");
+        return;
+    }
+
+    if (cart.length === 0) {
+        alert("Your cart is empty.");
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => {
+        return sum + Number(item.price || 0);
+    }, 0);
+const ordersSnapshot = await getDocs(
+    collection(db, "orders")
+);
+
+let maxOrderNumber = 0;
+let maxRestaurantOrderNumber = 0;
+let oldRestaurantOrders = 0;
+
+const orderRestaurantId =
+    cart[0]?.restaurantId || null;
+
+ordersSnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    // Overall Feli Food order number
+    const number = Number(data.orderNumber);
+
+    if (Number.isFinite(number)) {
+        maxOrderNumber = Math.max(
+            maxOrderNumber,
+            number
+        );
+    }
+
+    // Restaurant-specific order number
+    if (
+    orderRestaurantId &&
+    data.restaurantId === orderRestaurantId
+) {
+        const restaurantNumber =
+            Number(data.restaurantOrderNumber);
+
+        if (Number.isFinite(restaurantNumber)) {
+            maxRestaurantOrderNumber =
+                Math.max(
+                    maxRestaurantOrderNumber,
+                    restaurantNumber
+                );
+        } else {
+            // Older orders don't have this number
+            oldRestaurantOrders++;
+        }
+    }
+});
+
+const nextOrderNumber =
+    maxOrderNumber + 1;
+
+const nextRestaurantOrderNumber =
+    Math.max(
+        maxRestaurantOrderNumber,
+        oldRestaurantOrders
+    ) + 1;
+const restaurantsSnapshot = await getDocs(
+    collection(db, "restaurants")
+);
+
+const restaurantOwnerUids = [
+    ...new Set(
+        cart
+            .map(item => item.restaurantId)
+            .filter(Boolean)
+            .map(restaurantId => {
+                const restaurantDoc =
+                    restaurantsSnapshot.docs.find(
+                        doc => doc.id === restaurantId
+                    );
+
+                return restaurantDoc?.data()?.ownerUid;
+            })
+            .filter(Boolean)
+    )
+];
+    const order = {
+    orderNumber: nextOrderNumber,
+    restaurantOrderNumber: nextRestaurantOrderNumber,
+    customerName: name,
+    phone: phone,
+    address: address,
+    paymentMethod: paymentMethod,
+    items: [...cart],
+
+restaurantIds: [
+    ...new Set(
+        cart
+            .map(item => item.restaurantId)
+            .filter(Boolean)
+    )
+],
+restaurantOwnerUids: restaurantOwnerUids,
+restaurantId: cart[0]?.restaurantId || null,
+paymentStatus: "Unpaid",
+    total: total,
+    status: "Pending",
+    date: new Date().toLocaleString(),
+
+   customerId: window.feliAuth?.currentUser?.uid || null
+};
+const restaurants =
+  JSON.parse(localStorage.getItem("feliRestaurants") || "[]");
+
+const selectedRestaurantId =
+  cart[0]?.restaurantId;
+
+const selectedRestaurant =
+  restaurants.find(
+    restaurant =>
+      restaurant.firebaseId === selectedRestaurantId ||
+      restaurant.id === selectedRestaurantId
+  );
+
+const restaurantSubaccount =
+  selectedRestaurant?.paystackSubaccountCode || "";
+  if (paymentMethod === "Paystack" && !restaurantSubaccount) {
+  alert(
+    "❌ This restaurant is not connected to Paystack yet.\n\n" +
+    "Please contact Feli Food support."
+  );
+  return;
+}
+if (paymentMethod === "Paystack") {
+        const customerEmail =
+        phone.replace(/\D/g, "") + "@feli-food.com";
+
+    const paystackPop = new window.PaystackPop();
+
+    const paymentSuccessful = await new Promise((resolve) => {
+        paystackPop.checkout({
+            key: window.PAYSTACK_PUBLIC_KEY,
+            email: customerEmail,
+            subaccountCode: restaurantSubaccount,
+            amount: Math.round(total * 100),
+            currency: "GHS",
+            phone: phone,
+
+           onSuccess: async (transaction) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/paystack/verify/${encodeURIComponent(transaction.reference)}`
+    );
+
+    const result = await response.json();
+
+    const verified =
+      result.status === true &&
+      result.data?.status === "success";
+
+    if (!verified) {
+      console.error("Payment verification failed:", result);
+      resolve(false);
+      return;
+    }
+
+    const paidAmount = Number(result.data.amount);
+    const expectedAmount = Math.round(total * 100);
+    const paidCurrency = result.data.currency;
+
+    if (
+      paidAmount !== expectedAmount ||
+      paidCurrency !== "GHS"
+    ) {
+      console.error("Payment amount/currency mismatch:", {
+        paidAmount,
+        expectedAmount,
+        paidCurrency
+      });
+
+      resolve(false);
+      return;
+    }
+
+    console.log(
+      "Paystack payment verified successfully:",
+      result.data
+    );
+
+    order.paymentReference = transaction.reference;
+
+    resolve(true);
+
+  } catch (error) {
+    console.error("Payment verification error:", error);
+    resolve(false);
+  }
+},
+
+            onCancel: () => {
+                console.log("Paystack payment cancelled.");
+                resolve(false);
+            },
+
+            onError: (error) => {
+                console.error("Paystack payment error:", error);
+                resolve(false);
+            }
+        });
+    });
+
+    if (!paymentSuccessful) {
+        alert(
+            "❌ Payment was not completed.\n\n" +
+            "Your order was not placed."
+        );
+        return;
+    }
+
+    order.paymentStatus = "Paid";
+}
+
+const commissionRate =
+  Number(localStorage.getItem("feliCommissionRate")) || 0.05;
+
+const commissionAmount =
+  Number((total * commissionRate).toFixed(2));
+
+const restaurantAmount =
+  Number((total - commissionAmount).toFixed(2));
+
+order.commissionRate = commissionRate;
+order.commissionAmount = commissionAmount;
+order.restaurantAmount = restaurantAmount;
+
+const saved = await window.saveOrderToFirebase(order);
+localStorage.setItem("feliCurrentCustomerPhone", phone);
+if (!saved) {
+    return;
+}
+
+    const orders = JSON.parse(
+        localStorage.getItem("feliOrders") || "[]"
+    );
+
+    orders.push(order);
+
+localStorage.setItem("feliLastOrderIndex", orders.length - 1);
+
+    localStorage.setItem(
+        "feliOrders",
+        JSON.stringify(orders)
+    );
+
+    alert(
+        "Order placed successfully! 🎉\n\n" +
+        "Thank you, " + name + "!"
+    );
+
+    cart = [];
+
+    updateCart();
+
+    document.getElementById("checkoutForm").style.display = "none";
+
+    document.getElementById("customerName").value = "";
+    document.getElementById("customerPhone").value = "";
+    document.getElementById("customerAddress").value = "";
+}
+function showMyOrders() {
+    const currentPhone = localStorage.getItem("feliCurrentCustomerPhone");
+
+    const allOrders = JSON.parse(
+        localStorage.getItem("feliOrders") || "[]"
+    );
+
+    const orders = allOrders.filter(
+        order => order.phone === currentPhone
+    );
+window.feliCurrentOrders = orders;
+    if (orders.length === 0) {
+        alert("You have no orders yet.");
+        return;
+    }
+
+    let html = `
+        <div style="
+            background:white;
+            padding:25px;
+            border-radius:18px;
+            max-width:600px;
+            margin:20px auto;
+            box-shadow:0 5px 20px rgba(0,0,0,0.15);
+        ">
+            <h2 style="text-align:center;">📋 MY ORDERS</h2>
+    `;
+
+    orders.forEach((order, index) => {
+        const status = order.status || "Pending";
+
+        const statuses = [
+            "Pending",
+            "Accepted",
+            "Preparing",
+            "Ready",
+            "Delivered"
+        ];
+
+        const currentIndex = statuses.indexOf(status);
+
+        html += `
+            <div style="
+                border:1px solid #ddd;
+                border-radius:15px;
+                padding:20px;
+                margin-top:20px;
+            ">
+                <h3>Order #${order.orderNumber || index + 1}</h3>
+
+                <p><strong>Customer:</strong> ${order.customerName}</p>
+                <p><strong>Total:</strong> GHS ${order.total}</p>
+
+                <h4>Status: ${status}</h4>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:5px;
+                    margin:20px 0;
+                    flex-wrap:wrap;
+                ">
+        `;
+
+        statuses.forEach((step, stepIndex) => {
+            const active = stepIndex <= currentIndex;
+
+            html += `
+                <div style="
+                    flex:1;
+                    min-width:80px;
+                    text-align:center;
+                    padding:10px 5px;
+                    border-radius:10px;
+                    background:${active ? "#28a745" : "#ddd"};
+                    color:${active ? "white" : "#555"};
+                    font-size:13px;
+                    font-weight:bold;
+                ">
+                    ${step}
+                </div>
+            `;
+        });
+
+       html += `
+    </div>
+
+    <p style="font-size:13px;color:#777;">
+        Date: ${order.date}
+    </p>
+
+    ${
+        status === "Delivered"
+        ? `
+            <button
+                onclick="window.openReviewForm(${index})"
+                style="
+                    display:block;
+                    width:100%;
+                    margin:15px 0 0;
+                    padding:12px 20px;
+                    border:none;
+                    border-radius:10px;
+                    background:#f4b400;
+                    color:white;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+            >
+                ⭐ Rate & Review
+            </button>
+        `
+        : ""
+    }
+
+</div>
+`;
+    });
+
+    html += `</div>`;
+
+    const existing = document.getElementById("myOrdersTracker");
+
+    if (existing) {
+        existing.remove();
+    }
+
+    const tracker = document.createElement("div");
+
+    tracker.id = "myOrdersTracker";
+
+    tracker.innerHTML = html;
+
+
+tracker.innerHTML += `
+    <button onclick="document.getElementById('myOrdersTracker').remove()"
+        style="display:block;margin:20px auto 0;padding:12px 30px;border:none;border-radius:10px;background:#f44336;color:white;font-size:16px;">
+        Close
+    </button>
+`;
+
+   tracker.style.position = "fixed";
+tracker.style.top = "0";
+tracker.style.left = "0";
+tracker.style.width = "100%";
+tracker.style.height = "100%";
+tracker.style.background = "rgba(0,0,0,0.65)";
+tracker.style.overflowY = "auto";
+tracker.style.zIndex = "9999";
+tracker.style.padding = "40px 15px";
+tracker.style.boxSizing = "border-box";
+tracker.style.fontFamily = "Arial, sans-serif";
+
+    document.body.appendChild(tracker);
+} 
+   
+async function showOrders() {
+  if (window.loadOrdersFromFirebase) {
+    await window.loadOrdersFromFirebase();
+}
+    const dashboard = document.getElementById("ordersDashboard");
+    const ordersList = document.getElementById("ordersList");
+const allOrders = JSON.parse(
+    localStorage.getItem("feliOrders") || "[]"
+);
+
+const orders = allOrders.filter(order =>
+    order.items?.some(item =>
+        item.restaurantId === window.currentRestaurant?.id
+    )
+);
+        dashboard.style.display = "block";
+
+    if (orders.length === 0) {
+        ordersList.innerHTML = "<p>No orders yet.</p>";
+        return;
+    }
+
+    ordersList.innerHTML = "";
+
+    orders.forEach((order, index) => {
+        ordersList.innerHTML += `
+          <div class="order-card status-${order.status.toLowerCase()}"> 
+           <h3>Order #${order.orderNumber || index + 1}</h3> 
+            <p><strong>Customer:</strong> ${order.customerName}</p>
+                <p><strong>Phone:</strong> ${order.phone}</p>
+                <p><strong>Address:</strong> ${order.address}</p>
+                <p><strong>Payment:</strong> ${order.paymentMethod || "Not selected"}</p>
+                <p><strong>Payment Status:</strong> ${order.paymentStatus || "Unpaid"}</p>
+                <p><strong>Total:</strong> GHS ${order.total}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+                <p><strong>Date:</strong> ${order.date}</p>
+            <div class="order-actions">
+    <button onclick="updateOrderStatus('${order.firebaseId}', 'Accepted')">Accept</button>
+<button onclick="updateOrderStatus('${order.firebaseId}', 'Preparing')">Preparing</button>
+<button onclick="updateOrderStatus('${order.firebaseId}', 'Ready')">Ready</button>
+<button onclick="updateOrderStatus('${order.firebaseId}', 'Delivered')">Delivered</button>
+    ${order.paymentStatus === "Paid"
+    ? `<button disabled>✅ Paid</button>`
+    : `<button onclick="updatePaymentStatus(${index})">💰 Mark as Paid</button>`}
+    
+</div>    
+            </div>
+        `;
+    });
+
+   
+}
+function saveCommissionRate() {
+    const input = document.getElementById("commissionRateInput");
+
+    const rate = Number(input.value);
+
+    if (isNaN(rate) || rate < 0 || rate > 100) {
+        alert("Please enter a commission rate between 0% and 100%.");
+        return;
+    }
+
+    localStorage.setItem(
+        "feliCommissionRate",
+        String(rate / 100)
+    );
+
+    alert("Commission rate saved: " + rate + "%");
+}
+function showCommission() {
+    const commissionSection = document.getElementById("commissionSection");
+
+    if (!commissionSection) return;
+const savedRate = Number(
+    localStorage.getItem("feliCommissionRate") || 0.05
+);
+
+const rateInput = document.getElementById("commissionRateInput");
+
+if (rateInput) {
+    rateInput.value = savedRate * 100;
+}
+    const orders = JSON.parse(
+        localStorage.getItem("feliOrders") || "[]"
+    );
+
+    let totalSales = 0;
+    let totalCommission = 0;
+    let totalRestaurantEarnings = 0;
+    let totalOrders = 0;
+    const restaurantTotals = {};
+    orders.forEach((order) => {
+
+        // Only count orders that have been paid
+        if (order.paymentStatus !== "Paid") return;
+
+        const total = Number(order.total) || 0;
+       const restaurantName = order.restaurant || order.items?.[0]?.restaurant || "Unknown Restaurant";
+        if (!restaurantTotals[restaurantName]) {
+    restaurantTotals[restaurantName] = {
+        sales: 0,
+        commission: 0,
+        earnings: 0,
+        orders: 0
+    };
+}
+        const commission = order.commissionAmount != null
+            ? Number(order.commissionAmount)
+            : Number((total * 0.05).toFixed(2));
+
+        const restaurantAmount = order.restaurantAmount != null
+            ? Number(order.restaurantAmount)
+            : Number((total - commission).toFixed(2));
+
+        totalSales += total;
+        totalCommission += commission;
+        totalRestaurantEarnings += restaurantAmount;
+        restaurantTotals[restaurantName].sales += total;
+        restaurantTotals[restaurantName].commission += commission;
+        restaurantTotals[restaurantName].earnings += restaurantAmount;
+        restaurantTotals[restaurantName].orders++;
+        totalOrders++;
+    });
+
+    document.getElementById("totalSales").textContent =
+        totalSales.toFixed(2);
+
+    document.getElementById("totalCommission").textContent =
+        totalCommission.toFixed(2);
+
+    document.getElementById("totalRestaurantEarnings").textContent =
+        totalRestaurantEarnings.toFixed(2);
+
+    document.getElementById("totalCommissionOrders").textContent =
+        totalOrders;
+let restaurantBreakdown = document.getElementById("restaurantCommissionBreakdown");
+
+if (!restaurantBreakdown) {
+    restaurantBreakdown = document.createElement("div");
+    restaurantBreakdown.id = "restaurantCommissionBreakdown";
+    commissionSection.appendChild(restaurantBreakdown);
+}
+
+restaurantBreakdown.innerHTML = `
+    <h3>🏪 Restaurant Commission Breakdown</h3>
+    ${Object.entries(restaurantTotals).map(([name, data]) => `
+        <div style="border:1px solid #ddd; padding:12px; margin-top:10px; border-radius:10px;">
+            <strong>${name}</strong><br>
+            Sales: GHS ${data.sales.toFixed(2)}<br>
+            Feli Food Commission: GHS ${data.commission.toFixed(2)}<br>
+            Restaurant Earnings: GHS ${data.earnings.toFixed(2)}<br>
+            Orders: ${data.orders}
+        </div>
+    `).join("")}
+`;
+    commissionSection.style.display = "block";
+}
+function showManagerReviews() {
+    const managerReviews = document.getElementById("managerReviews");
+
+    if (!managerReviews) return;
+
+    const allReviews = JSON.parse(
+        localStorage.getItem("feliRestaurantReviews") || "[]"
+    );
+
+    if (allReviews.length === 0) {
+        managerReviews.innerHTML = "<p>No reviews yet.</p>";
+        return;
+    }
+
+    managerReviews.innerHTML = "";
+
+    allReviews.forEach(review => {
+        managerReviews.innerHTML += `
+            <div style="padding:15px; margin:10px 0; border:1px solid #ddd; border-radius:10px;">
+                <h4>⭐ ${review.rating}/5</h4>
+                <p><strong>Restaurant:</strong> ${review.restaurant}</p>
+                <p>${review.review}</p>
+                <small>${review.date || ""}</small>
+            </div>
+        `;
+    });
+}
+function filterManagerOrders() {
+    const searchInput = document.getElementById("orderSearch");
+    const search = searchInput.value.toLowerCase().trim();
+    const statusFilter = document.getElementById("orderStatusFilter").value.toLowerCase();
+    const ordersList = document.getElementById("ordersList");
+    const orderCards = ordersList.querySelectorAll(".order-card");
+
+    let found = false;
+
+    orderCards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const matchesStatus = !statusFilter || card.classList.contains("status-" + statusFilter);
+
+    if (
+        text.includes(search) &&
+        matchesStatus
+    ) {
+        card.style.display = "";
+        found = true;
+    } else {
+        card.style.display = "none";
+    }
+});
+
+    let noResults = document.getElementById("orderSearchNoResults");
+
+    if (!found && search) {
+        if (!noResults) {
+            noResults = document.createElement("p");
+            noResults.id = "orderSearchNoResults";
+            noResults.textContent = "No matching orders found.";
+            ordersList.appendChild(noResults);
+        }
+    } else if (noResults) {
+        noResults.remove();
+    }
+}
+const knownOrderIdsKey = "feliKnownOrderIds";
+
+let knownOrderIds = new Set(
+    JSON.parse(localStorage.getItem(knownOrderIdsKey) || "[]")
+);
+function checkForNewOrders() {
+
+    const orders = JSON.parse(
+        localStorage.getItem("feliOrders") || "[]"
+    );
+
+    if (localStorage.getItem("feliKnownOrderIdsInitialized") !== "true") {
+        orders.forEach(order => {
+            if (order.firebaseId) {
+                knownOrderIds.add(order.firebaseId);
+            }
+        });
+
+        localStorage.setItem(
+            knownOrderIdsKey,
+            JSON.stringify([...knownOrderIds])
+        );
+
+        localStorage.setItem(
+            "feliKnownOrderIdsInitialized",
+            "true"
+        );
+
+        return;
+    }
+
+    const newOrders = orders.filter(order =>
+        order.firebaseId &&
+        !knownOrderIds.has(order.firebaseId)
+    );
+
+    newOrders.forEach(order => {
+
+        const notificationKey =
+            "feliNewOrderNotified_" + order.firebaseId;
+
+        const alreadyNotified =
+            localStorage.getItem(notificationKey);
+
+        if (!alreadyNotified) {
+
+            // Lock the notification BEFORE showing it
+            localStorage.setItem(
+                notificationKey,
+                "true"
+            );
+
+            alert(
+                "🔔 NEW ORDER RECEIVED!\n\n" +
+                "Order #" + order.orderNumber +
+                "\nCustomer: " + order.customerName +
+                "\nTotal: GHS " + order.total
+            );
+        }
+
+        knownOrderIds.add(order.firebaseId);
+    });
+
+    localStorage.setItem(
+        knownOrderIdsKey,
+        JSON.stringify([...knownOrderIds])
+    );
+}
+
+if (!window.newOrderCheckerStarted) {
+    window.newOrderCheckerStarted = true;
+    setInterval(checkForNewOrders, 2000);
+}
+
+function hideOrders() {
+    document.getElementById("ordersDashboard").style.display = "none";
+}
+    function showRestaurantForm() {
+
+      const form =
+        document.getElementById("restaurantForm");
+
+      form.style.display = "block";
+
+      form.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    }
+
+
+    /* =========================
+       HIDE RESTAURANT FORM
+    ========================= */
+
+    function hideRestaurantForm() {
+
+      document.getElementById("restaurantForm").style.display =
+        "none";
+
+    }
+
+
+    /* =========================
+       REGISTER RESTAURANT
+    ========================= */
+
+    async function registerRestaurant() {
+    const restaurantName =
+        document.getElementById("restaurantName").value.trim();
+
+    const ownerName =
+        document.getElementById("ownerName").value.trim();
+
+        const ownerEmail =
+    document.getElementById("restaurantOwnerEmail").value.trim();
+
+    const ownerPassword =
+    document.getElementById("restaurantOwnerPassword").value;
+    const phone =
+        document.getElementById("restaurantPhone").value.trim();
+
+    const location =
+        document.getElementById("restaurantLocation").value.trim();
+
+    const description =
+        document.getElementById("restaurantDescription").value.trim();
+     const image =
+    document.getElementById("restaurantImage").value.trim(); 
+    const bankName =
+    document.getElementById("restaurantBankName").value.trim();
+
+const accountName =
+    document.getElementById("restaurantAccountName").value.trim();
+
+const accountNumber =
+    document.getElementById("restaurantAccountNumber").value.trim();  
+
+    if (
+  !restaurantName ||
+  !ownerName ||
+  !ownerEmail ||
+  !ownerPassword ||
+  !phone ||
+  !location
+) {
+    alert("Please fill in all the required details.");
+    return;
+}
+let ownerUid;
+
+try {
+    const ownerCredential = await createUserWithEmailAndPassword(
+        restaurantAuth,
+        ownerEmail,
+        ownerPassword
+    );
+
+    ownerUid = ownerCredential.user.uid;
+
+} catch (error) {
+    console.error("Restaurant owner account error:", error);
+
+    alert("Could not create restaurant owner account:\n" + error.message);
+    return;
+}
+    const restaurants =
+        JSON.parse(localStorage.getItem("feliRestaurants") || "[]");
+     // Create Paystack subaccount only if bank details were provided
+let paystackSubaccountCode = "";
+
+if (bankName && accountName && accountNumber) {
+  try {
+    const response = await fetch(
+      "http://localhost:3000/api/paystack/subaccount",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          businessName: restaurantName,
+          bankName: bankName,
+          accountNumber: accountNumber,
+          accountName: accountName,
+          email: ownerEmail,
+          phone: phone
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.status) {
+      console.error("Paystack subaccount error:", result);
+
+      alert(
+        "❌ We could not verify the restaurant bank account.\n\n" +
+        (result.message ||
+          "Please check the bank details and try again.")
+      );
+
+      return;
+    }
+
+    paystackSubaccountCode =
+      result.data.subaccountCode;
+
+    console.log(
+      "Paystack restaurant subaccount created:",
+      paystackSubaccountCode
+    );
+
+  } catch (error) {
+    console.error(
+      "Paystack connection error:",
+      error
+    );
+
+    alert(
+      "❌ Could not connect to Feli Food payment server.\n\n" +
+      "Please try again."
+    );
+
+    return;
+  }
+}
+    const newRestaurant = {
+    name: restaurantName,
+    owner: ownerName,
+    ownerUid: ownerUid,
+    phone: phone,
+    location: location,
+    description: description,
+    image: image,
+    bankName: bankName,
+    accountName: accountName,
+    accountNumber: accountNumber,
+    paystackSubaccountCode: paystackSubaccountCode,
+    status: "Open"
+};
+
+    restaurants.push(newRestaurant);
+
+    localStorage.setItem(
+        "feliRestaurants",
+        JSON.stringify(restaurants)
+    );
+if (window.saveRestaurantToFirebase) {
+    const restaurantId =
+        await window.saveRestaurantToFirebase(newRestaurant);
+
+    if (restaurantId) {
+        newRestaurant.firebaseId = restaurantId;
+
+        localStorage.setItem(
+            "feliRestaurants",
+            JSON.stringify(restaurants)
+        );
+    }
+}
+    alert(
+        "Restaurant registration submitted successfully! 🎉\n\n" +
+        "Restaurant: " + restaurantName + "\n" +
+        "Owner: " + ownerName + "\n" +
+        "Phone: " + phone + "\n" +
+        "Location: " + location
+    );
+
+    document.getElementById("restaurantForm").style.display = "none";
+
+    document.getElementById("restaurantName").value = "";
+    document.getElementById("ownerName").value = "";
+    document.getElementById("restaurantPhone").value = "";
+    document.getElementById("restaurantLocation").value = "";
+    document.getElementById("restaurantDescription").value = "";
+
+   
+}
+
+
+    /* =========================
+       ADD RESTAURANT CARD
+    ========================= */
+
+    function addRestaurantCard(restaurant) {
+
+      const container =
+        document.getElementById("restaurants");
+
+
+      const card =
+        document.createElement("div");
+
+
+      card.className = "restaurant";
+
+
+      card.setAttribute(
+        "data-name",
+        restaurant.name
+      );
+
+const allReviews = JSON.parse(
+    localStorage.getItem("feliRestaurantReviews") || "[]"
+);
+
+const restaurantReviews = allReviews.filter(
+    review => review.restaurant === restaurant.name
+);
+
+const averageRating = restaurantReviews.length
+    ? (
+        restaurantReviews.reduce(
+            (sum, review) => sum + Number(review.rating),
+            0
+        ) / restaurantReviews.length
+      ).toFixed(1)
+    : "0.0";
+      card.innerHTML = `
+
+      <div class="restaurant-image">
+<img src="${restaurant.image}" alt="${restaurant.name}">
+  </div>        
+
+        <div class="restaurant-info">
+
+          <h3>
+            ${restaurant.name}
+          </h3>
+
+          <p>
+            ${restaurant.location}
+          </p>
+          <div class="restaurant-rating">
+    ${"⭐".repeat(Math.round(Number(averageRating)))}${"☆".repeat(5 - Math.round(Number(averageRating)))} <span>${averageRating} (${restaurantReviews.length} review${restaurantReviews.length === 1 ? "" : "s"})</span>
+</div>
+<div class="restaurant-status">
+    ${restaurant.status === "Open"
+        ? "🟢 Open — Accepting Orders"
+        : "🔴 Closed — Not Accepting Orders"}
+</div>
+
+
+       <button ${restaurant.status !== "Open" ? "disabled" : ""} onclick="showMenu('${restaurant.name}', '${restaurant.id}')">
+    🍽️ View Menu
+      </button>
+       <button onclick="openRestaurantReview('${restaurant.name}')">
+    ⭐ Rate Restaurant
+</button>
+<button onclick="window.viewRestaurantReviews('${restaurant.name}')">
+    💬 View Reviews
+</button>  
+        </div>
+        
+      `;
+
+
+      container.appendChild(card);
+
+    }
+window.viewRestaurantReviews = async function (restaurantName) {
+    try {
+        let restaurantReviews = [];
+
+        // 1. Try to load reviews from Firebase
+        if (window.getDocs && window.collection && window.db) {
+            try {
+                const reviewsSnapshot = await window.getDocs(
+                    window.collection(window.db, "reviews")
+                );
+
+                reviewsSnapshot.forEach((docSnap) => {
+                    const review = docSnap.data();
+
+                    if (
+                        String(review.restaurant || "").trim().toLowerCase() ===
+                        String(restaurantName || "").trim().toLowerCase()
+                    ) {
+                        restaurantReviews.push({
+                            id: docSnap.id,
+                            ...review
+                        });
+                    }
+                });
+            } catch (firebaseError) {
+                console.error("Firebase reviews loading error:", firebaseError);
+            }
+        }
+
+        // 2. If Firebase has no reviews, check localStorage
+        if (restaurantReviews.length === 0) {
+            try {
+                const savedReviews = JSON.parse(
+                    localStorage.getItem("feliRestaurantReviews") || "[]"
+                );
+
+                restaurantReviews = savedReviews
+                    .filter((review) =>
+                        String(review.restaurant || "").trim().toLowerCase() ===
+                        String(restaurantName || "").trim().toLowerCase()
+                    )
+                    .map((review) => ({
+                        ...review,
+                        comment: review.comment || review.review || "",
+                        createdAt: review.createdAt || review.date || ""
+                    }));
+            } catch (localError) {
+                console.error("Local review loading error:", localError);
+            }
+        }
+
+        // 3. No reviews
+        if (restaurantReviews.length === 0) {
+            alert(`No reviews yet for ${restaurantName}.`);
+            return;
+        }
+
+        // 4. Sort newest reviews first
+        restaurantReviews.sort((a, b) => {
+            const getDate = (review) => {
+                if (review.createdAt?.toDate) {
+                    return review.createdAt.toDate();
+                }
+
+                if (review.createdAt) {
+                    return new Date(review.createdAt);
+                }
+
+                if (review.date) {
+                    return new Date(review.date);
+                }
+
+                return new Date(0);
+            };
+
+            return getDate(b) - getDate(a);
+        });
+
+        // 5. Build review window
+        let html = `
+            <div style="
+                background:white;
+                padding:25px;
+                border-radius:18px;
+                max-width:600px;
+                width:100%;
+                max-height:80vh;
+                overflow-y:auto;
+                margin:20px auto;
+                box-shadow:0 5px 20px rgba(0,0,0,0.15);
+            ">
+                <h2 style="text-align:center;">
+                    ⭐ ${restaurantName} Reviews
+                </h2>
+        `;
+
+        restaurantReviews.forEach((review) => {
+            const rating = Math.max(
+                0,
+                Math.min(5, Number(review.rating) || 0)
+            );
+
+            const stars = "⭐".repeat(rating);
+
+            let date = "";
+
+            if (review.createdAt?.toDate) {
+                date = review.createdAt.toDate().toLocaleString();
+            } else if (review.createdAt) {
+                date = new Date(review.createdAt).toLocaleString();
+            } else if (review.date) {
+                date = new Date(review.date).toLocaleString();
+            }
+
+            const comment =
+                review.comment ||
+                review.review ||
+                "No comment";
+
+            html += `
+                <div style="
+                    border:1px solid #ddd;
+                    border-radius:12px;
+                    padding:15px;
+                    margin-top:15px;
+                ">
+                    <div style="font-size:18px;">
+                        ${stars || "No rating"}
+                    </div>
+
+                    <p>
+                        <strong>Comment:</strong>
+                        ${comment}
+                    </p>
+
+                    <p style="
+                        color:#777;
+                        font-size:13px;
+                    ">
+                        ${date}
+                    </p>
+                </div>
+            `;
+        });
+
+        html += `
+                <button
+                    onclick="this.parentElement.parentElement.remove()"
+                    style="
+                        display:block;
+                        margin:20px auto 0;
+                        padding:12px 30px;
+                        border:none;
+                        border-radius:10px;
+                        background:#f14b00;
+                        color:white;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    Close
+                </button>
+            </div>
+        `;
+
+        // 6. Remove old viewer if one exists
+        const existing = document.getElementById(
+            "restaurantReviewsViewer"
+        );
+
+        if (existing) {
+            existing.remove();
+        }
+
+        // 7. Create new viewer
+        const viewer = document.createElement("div");
+
+        viewer.id = "restaurantReviewsViewer";
+
+        viewer.style.position = "fixed";
+        viewer.style.top = "0";
+        viewer.style.left = "0";
+        viewer.style.width = "100%";
+        viewer.style.height = "100%";
+        viewer.style.background = "rgba(0,0,0,0.65)";
+        viewer.style.zIndex = "10000";
+        viewer.style.display = "flex";
+        viewer.style.alignItems = "center";
+        viewer.style.justifyContent = "center";
+        viewer.style.padding = "20px";
+        viewer.style.boxSizing = "border-box";
+        viewer.style.overflowY = "auto";
+
+        viewer.innerHTML = html;
+
+        document.body.appendChild(viewer);
+
+    } catch (error) {
+        console.error(
+            "Error loading restaurant reviews:",
+            error
+        );
+
+        alert(
+            "Unable to load reviews. Please try again."
+        );
+    }
+};
+window.openRestaurantReview = function(restaurantName) {
+    const overlay = document.createElement("div");
+
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.65)";
+    overlay.style.zIndex = "10000";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.padding = "20px";
+    overlay.style.boxSizing = "border-box";
+
+    const box = document.createElement("div");
+
+    box.style.background = "white";
+    box.style.width = "100%";
+    box.style.maxWidth = "420px";
+    box.style.padding = "25px";
+    box.style.borderRadius = "15px";
+    box.style.boxSizing = "border-box";
+
+    box.innerHTML = `
+        <h2 style="margin-top:0;">⭐ Rate ${restaurantName}</h2>
+
+        <p>Choose your rating:</p>
+
+        <div id="reviewStars" style="display:flex;gap:8px;margin:15px 0;">
+            <button data-rating="1">⭐</button>
+            <button data-rating="2">⭐</button>
+            <button data-rating="3">⭐</button>
+            <button data-rating="4">⭐</button>
+            <button data-rating="5">⭐</button>
+        </div>
+
+        <textarea
+            id="restaurantReviewText"
+            placeholder="Write a short review..."
+            style="width:100%;height:100px;padding:10px;box-sizing:border-box;border-radius:8px;border:1px solid #ccc;"
+        ></textarea>
+
+        <button id="submitRestaurantReview"
+            style="margin-top:15px;padding:12px 20px;border:none;border-radius:8px;background:#ff6b00;color:white;">
+            Submit Review
+        </button>
+
+        <button id="closeRestaurantReview"
+            style="margin-top:10px;padding:12px 20px;border:none;border-radius:8px;background:#ddd;">
+            Cancel
+        </button>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    let selectedRating = 0;
+
+    const starButtons = box.querySelectorAll("#reviewStars button");
+
+    starButtons.forEach(button => {
+        button.style.border = "none";
+        button.style.background = "transparent";
+        button.style.fontSize = "28px";
+        button.style.cursor = "pointer";
+
+        button.addEventListener("click", function() {
+            selectedRating = Number(this.dataset.rating);
+
+            starButtons.forEach((star, index) => {
+                star.style.opacity =
+                    index < selectedRating ? "1" : "0.3";
+            });
+        });
+    });
+
+    box.querySelector("#closeRestaurantReview").addEventListener("click", function() {
+        overlay.remove();
+    });
+
+    box.querySelector("#submitRestaurantReview").addEventListener("click", function() {
+        const reviewText =
+            box.querySelector("#restaurantReviewText").value.trim();
+
+        if (selectedRating === 0) {
+            alert("Please choose a rating from 1 to 5.");
+            return;
+        }
+
+        if (!reviewText) {
+            alert("Please write a short review.");
+            return;
+        }
+
+        const reviews = JSON.parse(
+    localStorage.getItem("feliRestaurantReviews") || "[]"
+);
+
+        reviews.push({
+            restaurant: restaurantName,
+            rating: selectedRating,
+            review: reviewText,
+            date: new Date().toLocaleString()
+        });
+
+        localStorage.setItem(
+            "feliRestaurantReviews",
+            JSON.stringify(reviews)
+        );
+  window.saveReviewToFirebase({
+    restaurant: restaurantName,
+    rating: selectedRating,
+    review: reviewText,
+    date: new Date().toLocaleString()
+}).catch(error => {
+    console.error("Firebase review save error:", error);
+});
+
+        overlay.remove();
+
+        alert("⭐ Thank you! Your review has been saved.");
+    });
+};
+    /* =========================
+       ESCAPE RESTAURANT NAME
+    ========================= */
+
+    function escapeQuotes(text) {
+
+      return text
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;");
+
+    }
+
+
+    /* =========================
+       SHOW REGISTERED RESTAURANT
+    ========================= */
+
+    function showRegisteredRestaurant(name) {
+
+      alert(
+        name +
+        "\n\nThis restaurant has joined Feli Food."
+      );
+
+    }
+
+
+    /* =========================
+       LOAD SAVED RESTAURANTS
+    ========================= */
+function showFoodOptions(restaurant, foodName, foodPrice, restaurantId, foodImage = "", foodExtras = "") {
+    let quantity = 1;
+    let extraTotal = 0;
+
+    // Create popup
+    const modal = document.createElement("div");
+
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        z-index: 99999;
+    `;
+
+    // Parse extras
+    let extrasHTML = "";
+
+    if (foodExtras && foodExtras.trim()) {
+        const extras = foodExtras.split(",");
+
+        extras.forEach((extra, index) => {
+            const parts = extra.split("-");
+            const name = parts[0]?.trim() || "";
+            const price = Number(parts[1]?.trim()) || 0;
+
+            if (name) {
+                extrasHTML += `
+                    <label style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        padding:18px;
+                        border-bottom:1px solid #eee;
+                        background:white;
+                        cursor:pointer;
+                    ">
+                        <span>
+                            <input
+                                type="checkbox"
+                                class="food-extra"
+                                data-price="${price}"
+                                style="width:20px;height:20px;margin-right:12px;"
+                            >
+                            ${name}
+                        </span>
+
+                        <strong>+GHS ${price.toFixed(2)}</strong>
+                    </label>
+                `;
+            }
+        });
+    }
+
+    modal.innerHTML = `
+        <div style="
+            width:100%;
+            max-width:600px;
+            max-height:92vh;
+            overflow-y:auto;
+            background:white;
+            border-radius:25px 25px 0 0;
+        ">
+
+            <div style="position:relative;">
+
+                ${
+                    foodImage
+                    ? `<img src="${foodImage}"
+                        style="width:100%;height:260px;object-fit:cover;">`
+                    : `<div style="
+                        width:100%;
+                        height:260px;
+                        background:#f5f5f5;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:80px;
+                    ">🍽️</div>`
+                }
+
+                <button id="closeFoodOptions" style="
+                    position:absolute;
+                    top:15px;
+                    left:15px;
+                    width:45px;
+                    height:45px;
+                    border:none;
+                    border-radius:50%;
+                    background:white;
+                    font-size:25px;
+                    cursor:pointer;
+                ">×</button>
+
+            </div>
+
+            <div style="padding:22px;">
+
+                <h2 style="margin:0 0 8px;">
+                    ${foodName}
+                </h2>
+
+                <h3 style="
+                    margin:0 0 20px;
+                    color:#e53935;
+                    font-size:22px;
+                ">
+                    GHS ${Number(foodPrice).toFixed(2)}
+                </h3>
+
+                ${
+                    extrasHTML
+                    ? `
+                    <div style="
+                        background:#f5f6f7;
+                        padding:18px;
+                        margin:0 -22px 15px;
+                    ">
+                        <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+">
+    <div>
+        <h3 style="margin:0;font-size:22px;">Options</h3>
+        <small style="font-size:16px;color:#667085;">
+            Select at least one
+        </small>
+    </div>
+
+    <span style="
+        background:#ed1c24;
+        color:white;
+        padding:8px 14px;
+        border-radius:20px;
+        font-size:13px;
+        font-weight:bold;
+    ">
+        Required
+    </span>
+</div>
+                    </div>
+
+                    ${extrasHTML}
+                    `
+                    : ""
+                }
+
+                <div style="
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-top:22px;
+">
+
+                    <div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:220px;
+    height:60px;
+    border:1px solid #ddd;
+    border-radius:15px;
+    padding:0 15px;
+    background:white;
+">
+
+                        <button id="minusQty" style="
+                            border:none;
+                            background:none;
+                            font-size:25px;
+                            cursor:pointer;
+                        ">−</button>
+
+                        <span id="foodQty"
+                            style="
+                                min-width:40px;
+                                text-align:center;
+                                font-size:20px;
+                            ">
+                            1
+                        </span>
+
+                        <button id="plusQty" style="
+                            border:none;
+                            background:none;
+                            font-size:25px;
+                            cursor:pointer;
+                        ">+</button>
+
+                    </div>
+
+                    <button id="addFoodNow" style="
+                        flex:1;
+                        padding:20px 18px;
+                        border:none;
+                        border-radius:16px;
+                        background:#10a89d;
+                        color:white;
+                        font-size:18px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                        ADD GHS ${Number(foodPrice).toFixed(2)}
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const qtyDisplay = modal.querySelector("#foodQty");
+    const addButton = modal.querySelector("#addFoodNow");
+
+    function updateTotal() {
+        extraTotal = 0;
+
+        modal.querySelectorAll(".food-extra:checked").forEach(box => {
+            extraTotal += Number(box.dataset.price) || 0;
+        });
+
+        const total = (Number(foodPrice) + extraTotal) * quantity;
+
+        addButton.textContent =
+            `ADD GHS ${total.toFixed(2)}`;
+    }
+
+    modal.querySelector("#plusQty").onclick = () => {
+        quantity++;
+        qtyDisplay.textContent = quantity;
+        updateTotal();
+    };
+
+    modal.querySelector("#minusQty").onclick = () => {
+        if (quantity > 1) {
+            quantity--;
+            qtyDisplay.textContent = quantity;
+            updateTotal();
+        }
+    };
+
+    modal.querySelectorAll(".food-extra").forEach(box => {
+        box.addEventListener("change", updateTotal);
+    });
+
+    modal.querySelector("#closeFoodOptions").onclick = () => {
+        modal.remove();
+    };
+
+    modal.querySelector("#addFoodNow").onclick = () => {
+
+        let selectedExtras = [];
+
+        modal.querySelectorAll(".food-extra:checked").forEach(box => {
+            const extraName =
+                box.parentElement.textContent.trim();
+
+            selectedExtras.push(extraName);
+        });
+
+        const total =
+            (Number(foodPrice) + extraTotal) * quantity;
+
+        for (let i = 0; i < quantity; i++) {
+            addToCart(
+                restaurant,
+                foodName,
+                Number(foodPrice) + extraTotal,
+                restaurantId
+            );
+        }
+
+        modal.remove();
+
+        alert(
+            `${foodName} added to your cart! 🍽️\n\n` +
+            `Total: GHS ${total.toFixed(2)}`
+        );
+    };
+}
+
+async function showMenu(restaurant, restaurantId) {
+    const restaurantsSection = document.getElementById("restaurantSection");
+    const menuSection = document.getElementById("menuSection");
+
+    if (restaurantsSection) {
+        restaurantsSection.style.display = "none";
+    }
+
+    if (menuSection) {
+        menuSection.style.display = "block";
+        menuSection.classList.add("active");
+    }
+
+    document.getElementById("menuRestaurantName").textContent = restaurant;
+
+    const foodsContainer = document.getElementById("foods");
+    foodsContainer.innerHTML = "";
+
+    const foods = await window.getMenuFoodsFromFirebase(restaurant, restaurantId);
+    if (foods.length === 0) {
+        foodsContainer.innerHTML = `
+            <div class="empty">
+                <h3>Menu coming soon 🍽️</h3>
+                <p>${restaurant} has not added food yet.</p>
+            </div>
+        `;
+        return;
+    }
+
+    foods.forEach(food => {
+        foodsContainer.innerHTML += `
+            <div class="food">
+              ${food.imageUrl ? `<img src="${food.imageUrl}" alt="${food.name}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px;">` : ""}
+                <div class="food-image">${food.emoji || "🍛"}</div>
+                <h3>${food.name}</h3>
+                <div class="price">
+                    GHS ${food.price.toFixed(2)}
+               <button
+  onclick='showFoodOptions(${JSON.stringify(restaurant)}, ${JSON.stringify(food.name)}, ${Number(food.price)}, ${JSON.stringify(restaurantId)}, ${JSON.stringify(food.imageUrl || "")}, ${JSON.stringify(food.extras || "")})'
+  style="
+    width:100%;
+    margin-top:10px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#e53935;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+  "
+>
+  Add to Cart
+</button>
+                
+            </div>
+        `;
+    });
+}
+
+function loadRestaurants() {
+
+ }
+function searchFood() {
+    const searchInput = document.getElementById("search");
+    const searchTerm = searchInput.value.toLowerCase().trim();
+
+    const restaurants = document.querySelectorAll(".restaurant");
+
+    restaurants.forEach(function(restaurant) {
+        const restaurantName =
+            restaurant.getAttribute("data-name")?.toLowerCase() || "";
+
+        const restaurantText =
+            restaurant.textContent.toLowerCase();
+
+        if (
+            searchTerm === "" ||
+            restaurantName.includes(searchTerm) ||
+            restaurantText.includes(searchTerm)
+        ) {
+            restaurant.style.display = "";
+        } else {
+            restaurant.style.display = "none";
+        }
+    });
+}
+  </script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import {
+  getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+sendPasswordResetEmail,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, doc, updateDoc, onSnapshot,query,where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+window.addDoc = addDoc;
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyASId2lvEXuucygOz1ETx60OyHvKFiQNqw",
+    authDomain: "feli-food.firebaseapp.com",
+    projectId: "feli-food",
+    storageBucket: "feli-food.firebasestorage.app",
+    messagingSenderId: "132325587813",
+    appId: "1:132325587813:web:12b60e962263afa49c7f8c"
+  };
+window.PAYSTACK_PUBLIC_KEY ="pk_test_687f2c5b348d615c8dfaa2f5394cc6249879e64f";
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const savedRestaurant = localStorage.getItem("feliCurrentRestaurant");
+
+window.currentRestaurant = savedRestaurant
+    ? JSON.parse(savedRestaurant)
+    : null;
+const restaurantAuthApp = initializeApp(
+    firebaseConfig,
+    "restaurantAuthApp"
+);
+
+const restaurantAuth = getAuth(restaurantAuthApp);
+window.restaurantAuth = restaurantAuth;
+// ==========================================
+// FELI FOOD RIDER AUTHENTICATION
+// ==========================================
+
+const riderAuthApp = initializeApp(
+  firebaseConfig,
+  "riderAuthApp"
+);
+
+const riderAuth = getAuth(riderAuthApp);
+
+window.riderAuth = riderAuth;
+// ==========================================
+// FELI FOOD RIDER REGISTRATION
+// ==========================================
+
+window.registerRider = async function() {
+  const name = document
+    .getElementById("riderName")
+    .value
+    .trim();
+
+  const email = document
+    .getElementById("riderEmail")
+    .value
+    .trim();
+
+  const phone = document
+    .getElementById("riderPhone")
+    .value
+    .trim();
+
+  const location = document
+    .getElementById("riderLocation")
+    .value
+    .trim();
+
+  const password = document
+    .getElementById("riderPassword")
+    .value;
+
+  if (!name || !email || !phone || !location || !password) {
+    alert(
+      "Please fill in all rider registration fields."
+    );
+    return;
+  }
+
+  if (password.length < 6) {
+    alert(
+      "Password must be at least 6 characters."
+    );
+    return;
+  }
+
+  try {
+    const userCredential =
+      await createUserWithEmailAndPassword(
+        riderAuth,
+        email,
+        password
+      );
+
+    const user = userCredential.user;
+
+    await setDoc(
+      doc(db, "riders", user.uid),
+      {
+        name: name,
+        email: email,
+        phone: phone,
+        location: location,
+        uid: user.uid,
+
+        role: "rider",
+
+        status: "Pending",
+        availability: false,
+
+        completedDeliveries: 0,
+        totalEarnings: 0,
+
+        createdAt: new Date().toISOString()
+      }
+    );
+
+    localStorage.setItem(
+      "feliCurrentRider",
+      JSON.stringify({
+        uid: user.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        location: location,
+        status: "Pending",
+        availability: false
+      })
+    );
+
+    document.getElementById(
+      "riderDisplayName"
+    ).textContent = name;
+
+    document.getElementById(
+      "riderLoginPanel"
+    ).style.display = "none";
+
+    document.getElementById(
+      "riderRegistrationPanel"
+    ).style.display = "none";
+
+    document.getElementById(
+      "riderDashboard"
+    ).style.display = "block";
+
+    alert(
+      "✅ Rider registration successful!\n\n" +
+      "Your account has been created.\n\n" +
+      "Feli Food will review your rider account before you can accept deliveries."
+    );
+
+  } catch (error) {
+    console.error(
+      "Rider registration error:",
+      error
+    );
+
+    alert(
+      "❌ Rider registration failed.\n\n" +
+      error.message
+    );
+  }
+};
+onAuthStateChanged(restaurantAuth, async (user) => {
+  if (!user) return;
+
+  try {
+    const snapshot = await getDocs(
+      collection(db, "restaurants")
+    );
+
+    let myRestaurant = null;
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      if (data.ownerUid === user.uid) {
+        myRestaurant = {
+          id: doc.id,
+          ...data
+        };
+      }
+    });
+
+    if (!myRestaurant) return;
+
+    window.currentRestaurant = myRestaurant;
+
+    localStorage.setItem(
+      "feliCurrentRestaurant",
+      JSON.stringify(myRestaurant)
+    );
+
+    const foodRestaurantInput =
+      document.getElementById("foodRestaurant");
+
+    if (foodRestaurantInput) {
+      foodRestaurantInput.value = myRestaurant.name;
+      foodRestaurantInput.readOnly = true;
+    }
+
+    document.getElementById("ordersDashboard").style.display = "block";
+
+    document.getElementById(
+      "restaurantManagerPanel"
+    ).style.display = "block";
+
+    window.loadOrdersFromFirebase();
+  } catch (error) {
+    console.error(
+      "Restaurant session restore error:",
+      error
+    );
+  }
+});
+window.logoutRestaurantOwner = async function() {
+  try {
+    await signOut(restaurantAuth);
+
+    localStorage.removeItem("feliCurrentRestaurant");
+    window.currentRestaurant = null;
+
+    document.getElementById("ordersDashboard").style.display = "none";
+
+    alert("✅ Restaurant owner logged out successfully.");
+
+  } catch (error) {
+    console.error("Restaurant logout error:", error);
+    alert("❌ Logout failed: " + error.message);
+  }
+};
+window.loginRestaurant = async function() {
+    const email = document.getElementById("restaurantLoginEmail").value.trim();
+    const password = document.getElementById("restaurantLoginPassword").value;
+
+    if (!email || !password) {
+        alert("Please enter your email and password.");
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(
+            restaurantAuth,
+            email,
+            password
+        );
+const snapshot = await getDocs(collection(db, "restaurants"));
+
+let myRestaurant = null;
+
+snapshot.forEach((doc) => {
+    const data = doc.data();
+
+    if (data.ownerUid === restaurantAuth.currentUser.uid) {
+        myRestaurant = {
+            id: doc.id,
+            ...data
+        };
+    }
+});
+
+if (!myRestaurant) {
+    alert("❌ No restaurant is linked to this owner account.");
+    return;
+}
+
+window.currentRestaurant = myRestaurant;
+localStorage.setItem("feliCurrentRestaurant", JSON.stringify(myRestaurant));
+const foodRestaurantInput = document.getElementById("foodRestaurant");
+
+if (foodRestaurantInput) {
+    foodRestaurantInput.value = myRestaurant.name;
+    foodRestaurantInput.readOnly = true;
+}
+document.getElementById("ordersDashboard").style.display = "block";
+document.getElementById("restaurantManagerPanel").style.display = "block";
+window.loadOrdersFromFirebase();
+alert("✅ Restaurant owner signed in successfully!");
+    } catch (error) {
+        console.error("Restaurant login error:", error);
+        alert("❌ Login failed: " + error.message);
+    }
+};
+window.getDocs = getDocs;
+window.collection = collection;
+window.db = db;
+const storage = getStorage(app);
+
+window.saveReviewToFirebase = async function(reviewData) {
+    if (!reviewData.orderId) {
+        throw new Error("Order ID is missing.");
+    }
+
+    const reviewRef = doc(db, "reviews", String(reviewData.orderId));
+    const existingReview = await getDoc(reviewRef);
+
+    if (existingReview.exists()) {
+        alert("⭐ You have already reviewed this order.");
+        return false;
+    }
+
+    await setDoc(reviewRef, reviewData);
+    return true;
+};
+window.submitReview = async function(
+  restaurantName,
+  foodName,
+  rating,
+  comment,
+  orderId
+) {
+  try {
+    const reviewData = {
+      orderId: orderId,
+      restaurant: restaurantName,
+      food: foodName,
+      rating: Number(rating),
+      comment: comment,
+      customer: localStorage.getItem("feliCurrentCustomerPhone") || "Guest",
+      createdAt: new Date().toISOString()
+    };
+
+    const saved = await window.saveReviewToFirebase(reviewData);
+return saved;
+
+  } catch (error) {
+    console.error("Review error:", error);
+    alert("❌ Could not submit review.");
+  }
+};
+window.forgotRestaurantPassword = async function() {
+  const email = document
+    .getElementById("restaurantLoginEmail")
+    .value
+    .trim();
+
+  if (!email) {
+    alert("Please enter your restaurant owner email first.");
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(
+      restaurantAuth,
+      email
+    );
+
+    alert(
+      "✅ Password reset email sent!\n\n" +
+      "Check your email and follow the instructions to create a new password."
+    );
+
+  } catch (error) {
+    console.error("Restaurant password reset error:", error);
+
+    alert(
+      "❌ Could not send password reset email.\n\n" +
+      error.message
+    );
+  }
+};
+window.openReviewForm = function(orderIndex) {
+    const order = window.feliCurrentOrders?.[orderIndex];
+console.log("REVIEW ORDER DATA:", order);
+if (!order) {
+    alert("Order information could not be found.");
+    return;
+}
+
+const firstItem = order.items?.[0];
+const restaurantName = firstItem?.restaurant || "";
+
+const foodName = order.items?.map(item => item.food).filter(Boolean).join(", ") || "";
+    const oldForm = document.getElementById("feliReviewForm");
+    if (oldForm) oldForm.remove();
+
+    const form = document.createElement("div");
+    form.id = "feliReviewForm";
+    form.dataset.orderId = order.firebaseId;
+
+    form.style.position = "fixed";
+    form.style.top = "50%";
+    form.style.left = "50%";
+    form.style.transform = "translate(-50%, -50%)";
+    form.style.width = "90%";
+    form.style.maxWidth = "450px";
+    form.style.background = "white";
+    form.style.padding = "25px";
+    form.style.borderRadius = "15px";
+    form.style.boxShadow = "0 5px 25px rgba(0,0,0,0.3)";
+    form.style.zIndex = "10000";
+    form.style.fontFamily = "Arial, sans-serif";
+
+    form.innerHTML = `
+        <h2 style="text-align:center;">⭐ Rate & Review</h2>
+
+       <input
+    id="reviewRestaurantName"
+    type="text"
+    value="${restaurantName}"
+    readonly
+    placeholder="Restaurant name"
+    style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+>
+
+        <input
+            id="reviewFoodName"
+            value="${foodName}"
+            readonly
+            type="text"
+            placeholder="Food you ordered"
+            style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+        >
+
+        <input
+            id="reviewRating"
+            type="number"
+            min="1"
+            max="5"
+            placeholder="Rating (1 - 5)"
+            style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+        >
+
+        <textarea
+            id="reviewComment"
+            placeholder="Write your review..."
+            rows="4"
+            style="width:100%;padding:12px;margin:8px 0;box-sizing:border-box;"
+        ></textarea>
+
+        <button
+            onclick="submitFeliReview()"
+            style="width:100%;padding:13px;margin-top:10px;border:none;border-radius:10px;background:#ff9800;color:white;font-size:16px;"
+        >
+            ⭐ Submit Review
+        </button>
+
+        <button
+            onclick="document.getElementById('feliReviewForm').remove()"
+            style="width:100%;padding:13px;margin-top:10px;border:none;border-radius:10px;background:#f44336;color:white;font-size:16px;"
+        >
+            Close
+        </button>
+    `;
+
+    document.body.appendChild(form);
+};
+
+
+window.submitFeliReview = async function() {
+    const orderId = document.getElementById("feliReviewForm").dataset.orderId;
+    const restaurantName =
+        document.getElementById("reviewRestaurantName").value.trim();
+
+    const foodName =
+        document.getElementById("reviewFoodName").value.trim();
+
+    const rating =
+        Number(document.getElementById("reviewRating").value);
+
+    const comment =
+        document.getElementById("reviewComment").value.trim();
+
+    if (!restaurantName || !foodName || !rating || !comment) {
+        alert("Please fill in all review fields.");
+        return;
+    }
+
+    if (rating < 1 || rating > 5) {
+        alert("Please enter a rating from 1 to 5.");
+        return;
+    }
+
+    try {
+        const saved = await window.submitReview(
+    restaurantName,
+    foodName,
+    rating,
+    comment,
+    orderId
+);
+
+if (!saved) {
+    return;
+}
+
+        document.getElementById("feliReviewForm").remove();
+
+        alert("⭐ Review submitted successfully!");
+    } catch (error) {
+        console.error("Review error:", error);
+        alert("❌ Could not submit review.");
+    }
+};
+const auth = getAuth(app);
+window.feliAuth = auth;
+  onAuthStateChanged(auth, (user) => {
+    const authMessage = document.getElementById("authMessage");
+
+    if (user) {
+        authMessage.textContent = "✅ Signed in as " + user.email;
+    } else {
+        authMessage.textContent = "";
+    }
+});
+  window.signUpCustomer = async function() {
+    const email = document.getElementById("customerEmail").value.trim();
+    const password = document.getElementById("customerPassword").value;
+
+    if (!email || !password) {
+        document.getElementById("authMessage").textContent =
+            "Please enter your email and password.";
+        return;
+    }
+
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+
+        document.getElementById("authMessage").textContent =
+            "✅ Account created successfully!";
+    } catch (error) {
+        console.error("Sign up error:", error);
+        document.getElementById("authMessage").textContent =
+            "❌ " + error.message;
+    }
+};
+
+window.loginCustomer = async function() {
+    const email = document.getElementById("customerEmail").value.trim();
+    const password = document.getElementById("customerPassword").value;
+
+    if (!email || !password) {
+        document.getElementById("authMessage").textContent =
+            "Please enter your email and password.";
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        document.getElementById("authMessage").textContent =
+            "✅ Signed in successfully!";
+    } catch (error) {
+        console.error("Login error:", error);
+        document.getElementById("authMessage").textContent =
+            "❌ " + error.message;
+    }
+};
+window.signOutCustomer = async function() {
+    try {
+        await signOut(auth);
+
+        document.getElementById("authMessage").textContent =
+            "✅ Signed out successfully!";
+    } catch (error) {
+        console.error("Sign out error:", error);
+
+        document.getElementById("authMessage").textContent =
+            "❌ " + error.message;
+    }
+};
+window.resetCustomerPassword = async function() {
+    const email = document.getElementById("customerEmail").value.trim();
+
+    if (!email) {
+        document.getElementById("authMessage").textContent =
+            "Please enter your email first.";
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+
+        document.getElementById("authMessage").textContent =
+            "✅ Password reset email sent. Check your email.";
+    } catch (error) {
+        console.error("Password reset error:", error);
+
+        document.getElementById("authMessage").textContent =
+            "❌ " + error.message;
+    }
+};
+window.saveCustomerProfile = function() {
+    const name = document.getElementById("profileName").value.trim();
+    const phone = document.getElementById("profilePhone").value.trim();
+    const address = document.getElementById("profileAddress").value.trim();
+
+    if (!name || !phone || !address) {
+        document.getElementById("profileMessage").textContent =
+            "Please fill in your name, phone number and address.";
+        return;
+    }
+
+    const profile = {
+        name: name,
+        phone: phone,
+        address: address
+    };
+
+    localStorage.setItem("feliCustomerProfile", JSON.stringify(profile));
+    localStorage.setItem("feliCurrentCustomerPhone", phone);
+
+    document.getElementById("profileMessage").textContent =
+        "✅ Profile saved successfully!";
+};
+window.loadCustomerProfile = function() {
+    const savedProfile = localStorage.getItem("feliCustomerProfile");
+
+    if (!savedProfile) return;
+
+    const profile = JSON.parse(savedProfile);
+
+    document.getElementById("profileName").value = profile.name || "";
+    document.getElementById("profilePhone").value = profile.phone || "";
+    document.getElementById("profileAddress").value = profile.address || "";
+};
+
+window.loadCustomerProfile();
+  window.saveOrderToFirebase = async function(order) {
+        try {
+        await addDoc(collection(db, "orders"), order);
+        return true;
+    } catch (error) {
+        console.error("Error saving order:", error);
+        alert("Order could not be saved. Please try again.");
+        return false;
+    }
+};
+ window.getMenuFoodsFromFirebase = async function (restaurantName, restaurantId) {
+
+    // If restaurant ID was not provided, find it by restaurant name
+    if (!restaurantId) {
+        const restaurantsRef = collection(db, "restaurants");
+        const snapshot = await getDocs(restaurantsRef);
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+
+            if (
+                data.name &&
+                data.name.toLowerCase() === restaurantName.toLowerCase()
+            ) {
+                restaurantId = doc.id;
+            }
+        });
+    }
+
+    // Restaurant could not be found
+    if (!restaurantId) {
+        return [];
+    }
+
+    // Load foods from this restaurant's menu
+    const menuRef = collection(
+        db,
+        "restaurants",
+        restaurantId,
+        "menu"
+    );
+
+    const menuSnapshot = await getDocs(menuRef);
+
+    return menuSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+};
+let addingFood = false;
+ window.addFoodToFirebase = async function () {
+
+    if (!window.currentRestaurant) {
+        alert("Please sign in as a restaurant owner first.");
+        return;
+    }
+
+    const foodName =
+        document.getElementById("foodName").value.trim();
+
+    const foodPrice =
+        Number(document.getElementById("foodPrice").value);
+
+    const foodCategory =
+        document.getElementById("foodCategory").value.trim();
+
+    const foodDescription =
+        document.getElementById("foodDescription").value.trim();
+        const foodExtras =
+    document.getElementById("foodExtras").value.trim();
+
+    const restaurantId =
+        window.currentRestaurant.id;
+
+    const restaurantName =
+        window.currentRestaurant.name;
+
+    if (!foodName || !foodPrice) {
+        alert("Please enter food name and price.");
+        return;
+    }
+
+    if (addingFood) return;
+
+    addingFood = true;
+
+    try {
+
+        const foodImageInput =
+            document.getElementById("foodImage");
+
+        const foodImageFile =
+            foodImageInput ? foodImageInput.files[0] : null;
+
+        let imageUrl = "";
+
+        if (foodImageFile) {
+
+            const imageRef = ref(
+                storage,
+                "foodImages/" +
+                Date.now() +
+                "_" +
+                foodImageFile.name
+            );
+
+            await uploadBytes(
+                imageRef,
+                foodImageFile
+            );
+
+            imageUrl =
+                await getDownloadURL(imageRef);
+        }
+
+        await addDoc(
+            collection(
+                db,
+                "restaurants",
+                restaurantId,
+                "menu"
+            ),
+            {
+                name: foodName,
+                price: foodPrice,
+                category: foodCategory,
+                description: foodDescription,
+                restaurant: restaurantName,
+                restaurantId: restaurantId,
+                createdAt: new Date().toISOString(),
+                 extras: foodExtras,
+                  imageUrl: imageUrl
+            }
+        );
+
+        alert(
+            "Food added successfully! 🎉\n\n" +
+            restaurantName +
+            "\n" +
+            foodName
+        );
+
+        document.getElementById("foodName").value = "";
+        document.getElementById("foodPrice").value = "";
+        document.getElementById("foodCategory").value = "";
+        document.getElementById("foodDescription").value = "";
+        document.getElementById("foodExtras").value = "";
+
+        const foodImage =
+            document.getElementById("foodImage");
+
+        if (foodImage) {
+            foodImage.value = "";
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Add food error:",
+            error
+        );
+
+        alert(
+            "Could not add food to Firebase."
+        );
+
+    } finally {
+
+        addingFood = false;
+    }
+};
+window.backToRestaurants = function () {
+    document.getElementById("menuSection").style.display = "none";
+   document.getElementById("restaurantSection").style.display = "";;
+    if (window.loadRestaurants) {
+        window.loadRestaurants();
+    }
+};
+  window.loadRestaurants = async function () {
+    try {
+        const restaurantsRef = collection(db, "restaurants");
+        const snapshot = await getDocs(restaurantsRef);
+
+        const container = document.getElementById("restaurants");
+
+        if (!container) {
+            console.error("Restaurants container not found.");
+            return;
+        }
+
+        container.innerHTML = "";
+
+       const uniqueRestaurants = new Map();
+
+snapshot.forEach((doc) => {
+
+    const data = doc.data();
+
+    const restaurant = {
+        id: doc.id,
+        ...data,
+        location: data.location || "Kumasi Ghana",
+        status: data.status || "Open"
+    };
+
+    const key = String(restaurant.name || "")
+        .trim()
+        .toLowerCase();
+
+    // If this restaurant is already listed,
+    // keep the currently logged-in owner's restaurant.
+    const existingRestaurant = uniqueRestaurants.get(key);
+
+if (existingRestaurant) {
+    // Keep the version that has the Paystack subaccount
+    if (
+        existingRestaurant.paystackSubaccountCode &&
+        !restaurant.paystackSubaccountCode
+    ) {
+        return;
+    }
+}
+
+uniqueRestaurants.set(key, restaurant);
+});
+
+uniqueRestaurants.forEach((restaurant) => {
+
+    if (window.addRestaurantCard) {
+        window.addRestaurantCard(restaurant);
+    } else {
+        console.error("addRestaurantCard function not found.");
+    }
+
+});
+
+        console.log("Restaurants loaded from Firebase:", snapshot.size);
+
+    } catch (error) {
+        console.error("Error loading restaurants:", error);
+    }
+};
+  window.saveRestaurantToFirebase = async function (restaurant) {
+    try {
+        const restaurantRef = await addDoc(
+            collection(db, "restaurants"),
+            restaurant
+        );
+
+        console.log(
+            "Restaurant saved to Firebase:",
+            restaurantRef.id,
+            restaurant
+        );
+
+        return restaurantRef.id;
+
+    } catch (error) {
+        console.error("Firebase save error:", error);
+        alert("Could not save restaurant to Firebase.");
+        return null;
+    }
+};
+  const menuRef = collection(db, "restaurants", "rQTgD7yPwJebxq2hpV3e", "menu");
+
+const snapshot = await getDocs(menuRef);
+
+snapshot.forEach((doc) => {
+  console.log(doc.id, doc.data());
+});
+window.loadRestaurants();
+window.loadOrdersFromFirebase = function () {
+ if (window.firebaseOrdersListenerStarted) {
+    return;
+}
+
+try {
+    const currentUser =
+        window.restaurantAuth?.currentUser ||
+        window.feliAuth?.currentUser;
+
+    if (!currentUser) {
+        console.log("No user is signed in.");
+        return;
+    }
+
+    window.firebaseOrdersListenerStarted = true;
+
+if (!currentUser) {
+    console.log("No user is signed in.");
+    return;
+}
+
+const isAdmin =
+    currentUser.email?.toLowerCase() === "cobbyloddy58@gmail.com";
+const ordersRef = isAdmin
+    ? collection(db, "orders")
+    : window.currentRestaurant?.id
+        ? query(
+            collection(db, "orders"),
+            where(
+                "restaurantIds",
+                "array-contains",
+                window.currentRestaurant.id
+            )
+        )
+        : query(
+            collection(db, "orders"),
+            where("customerId", "==", currentUser.uid)
+        );
+
+        onSnapshot(ordersRef, (snapshot) => {
+            console.log("Orders updated from Firebase:", snapshot.size);
+
+            const firebaseOrders = [];
+
+            snapshot.forEach((docSnap, index) => {
+    const data = docSnap.data();
+
+    firebaseOrders.push({
+        ...data,
+        orderNumber: data.orderNumber || (index + 1),
+        firebaseId: docSnap.id
+    });
+});
+
+            localStorage.setItem(
+                "feliOrders",
+                JSON.stringify(firebaseOrders)
+            );
+
+ if (document.getElementById("ordersDashboard").style.display === "block") {
+    showOrders();
+}
+
+            // Refresh customer My Orders if it is open
+if (document.getElementById("myOrdersTracker")) {
+    showMyOrders();
+}
+            // Notify customer when their order status changes
+const currentPhone = localStorage.getItem("feliCurrentCustomerPhone");
+if (currentPhone && document.getElementById("myOrdersTracker")) {
+
+    firebaseOrders
+        .filter(order => order.phone === currentPhone)
+        .forEach(order => {
+           const statusKey = "feliOrderStatus_" + order.firebaseId;
+const oldStatus = localStorage.getItem(statusKey);
+
+const notificationKey = "feliLastNotified_" + order.firebaseId;
+const lastNotifiedStatus = sessionStorage.getItem(notificationKey);
+
+if (
+    oldStatus &&
+    oldStatus !== order.status &&
+    lastNotifiedStatus !== order.status
+) {
+    localStorage.setItem(notificationKey, order.status);
+
+    alert(
+        "🔔 ORDER UPDATE\n\n" +
+        "Order #" + (order.restaurantOrderNumber || order.orderNumber) +
+        "\nStatus: " + order.status
+    );
+}
+
+localStorage.setItem(statusKey, order.status);
+        });
+}
+        });
+
+    } catch (error) {
+        console.error("Error loading orders:", error);
+    }
+};
+window.loadOrdersFromFirebase();
+window.updateFirebaseOrderStatus = async function (firebaseId, status) {
+    try {
+        const orderRef = doc(db, "orders", firebaseId);
+
+        await updateDoc(orderRef, {
+            status: status
+        });
+
+        console.log("Firebase order updated:", firebaseId, status);
+        return true;
+
+    } catch (error) {
+        console.error("Error updating Firebase order:", error);
+        return false;
+    }
+};
+window.updateOrderStatus = async function (firebaseId, status) {
+    try {
+        const allOrders = JSON.parse(
+    localStorage.getItem("feliOrders") || "[]"
+);
+
+let order = allOrders.find(
+    order => order.firebaseId === firebaseId
+);
+
+// If the order is not in localStorage, get it directly from Firebase
+if (!order) {
+    const orderRef = doc(db, "orders", firebaseId);
+    const orderSnap = await getDoc(orderRef);
+
+    if (!orderSnap.exists()) {
+        alert("Order not found.");
+        return;
+    }
+
+    order = {
+        firebaseId: firebaseId,
+        ...orderSnap.data()
+    };
+
+    allOrders.push(order);
+
+    localStorage.setItem(
+        "feliOrders",
+        JSON.stringify(allOrders)
+    );
+}
+
+        
+        // Update Firebase if this order has a Firebase ID
+        if (order.firebaseId) {
+            const success =
+                await window.updateFirebaseOrderStatus(
+                    order.firebaseId,
+                    status
+                );
+
+            if (!success) {
+                alert("Could not update order status.");
+                return;
+            }
+        }
+
+        // Update local order
+        order.status = status;
+
+        localStorage.setItem(
+            "feliOrders",
+            JSON.stringify(allOrders)
+        );
+
+       // Refresh orders on the screen
+showOrders();
+
+// Re-apply the current search/filter
+filterManagerOrders();
+        
+    } catch (error) {
+    console.error("Error updating order status:", error);
+    alert("Something went wrong.");
+}
+};
+window.updatePaymentStatus = async function (index) {
+    try {
+        const orders = JSON.parse(
+            localStorage.getItem("feliOrders") || "[]"
+        );
+
+        const order = orders[index];
+
+        if (!order) {
+            alert("Order not found.");
+            return;
+        }
+
+        if (!order.firebaseId) {
+            alert("This order is not connected to Firebase.");
+            return;
+        }
+
+        await updateDoc(
+            doc(db, "orders", order.firebaseId),
+            {
+                paymentStatus: "Paid"
+            }
+        );
+
+        order.paymentStatus = "Paid";
+
+        localStorage.setItem(
+            "feliOrders",
+            JSON.stringify(orders)
+        );
+
+        alert("✅ Payment marked as Paid.");
+
+        showOrders();
+
+    } catch (error) {
+        console.error("Error updating payment status:", error);
+        alert("❌ Could not update payment status.");
+    }
+};
+
+window.loadOrdersFromFirebase();
+window.toggleRestaurantStatus = async function () {
+    try {
+
+        if (!window.currentRestaurant) {
+            alert("Please sign in as a restaurant owner first.");
+            return;
+        }
+
+        const restaurantId = window.currentRestaurant.id;
+
+        const restaurantRef = doc(
+            db,
+            "restaurants",
+            restaurantId
+        );
+
+        const restaurantSnapshot = await getDoc(restaurantRef);
+
+        if (!restaurantSnapshot.exists()) {
+            alert("Restaurant could not be found.");
+            return;
+        }
+
+        const restaurantData = restaurantSnapshot.data();
+
+        const newStatus =
+            restaurantData.status === "Open"
+                ? "Closed"
+                : "Open";
+
+        await updateDoc(
+            restaurantRef,
+            {
+                status: newStatus
+            }
+        );
+
+        window.currentRestaurant.status = newStatus;
+
+        alert(
+            "Restaurant is now " + newStatus + " 🟢"
+        );
+
+        await window.loadRestaurants();
+
+    } catch (error) {
+        console.error("Status update error:", error);
+        alert("Could not change restaurant status.");
+    }
+};
+window.loginRider = async function() {
+  const email = document
+    .getElementById("riderLoginEmail")
+    .value
+    .trim();
+
+  const password = document
+    .getElementById("riderLoginPassword")
+    .value;
+
+  if (!email || !password) {
+    alert("Please enter your rider email and password.");
+    return;
+  }
+
+  try {
+    const userCredential =
+      await signInWithEmailAndPassword(
+        riderAuth,
+        email,
+        password
+      );
+
+    const user = userCredential.user;
+
+    const riderDoc = await getDoc(
+      doc(db, "riders", user.uid)
+    );
+
+    if (!riderDoc.exists()) {
+      alert("❌ Rider account details were not found.");
+      return;
+    }
+
+    const rider = riderDoc.data();
+
+    localStorage.setItem(
+      "feliCurrentRider",
+      JSON.stringify({
+        uid: user.uid,
+        name: rider.name,
+        email: rider.email,
+        phone: rider.phone,
+        location: rider.location,
+        status: rider.status,
+        availability: rider.availability
+      })
+    );
+
+    document.getElementById(
+      "riderDisplayName"
+    ).textContent = rider.name;
+
+    document.getElementById(
+      "riderLoginPanel"
+    ).style.display = "none";
+
+    document.getElementById(
+      "riderRegistrationPanel"
+    ).style.display = "none";
+
+    document.getElementById(
+      "riderDashboard"
+    ).style.display = "block";
+
+    if (rider.status !== "Approved") {
+      alert(
+        "✅ Login successful.\n\n" +
+        "Your rider account is still pending approval. " +
+        "You cannot accept deliveries until Feli Food approves your account."
+      );
+    }
+
+  } catch (error) {
+    console.error("Rider login error:", error);
+
+    alert(
+      "❌ Rider login failed.\n\n" +
+      error.message
+    );
+  }
+};
+</script>
+
+<div id="ordersSection" style="display:none; padding:20px;">
+    <h2>📦 Feli Food Orders</h2>
+    <div id="ordersList"></div>
+</div>
+<!-- FELI FOOD COMMISSION DASHBOARD -->
+<div id="commissionSection" style="display:none; padding:20px;">
+    <h2>💰 Feli Food Commission</h2>
+<div style="margin-bottom:20px;">
+    <strong>Commission Rate:</strong>
+    <input
+        type="number"
+        id="commissionRateInput"
+        value="5"
+        min="0"
+        max="100"
+        step="0.1"
+        style="width:80px; margin-left:10px;"
+    >
+    %
+    <button onclick="saveCommissionRate()" style="margin-left:10px;">
+        Save Rate
+    </button>
+</div>
+    <div>
+        <strong>Total Sales:</strong>
+        GHS <span id="totalSales">0.00</span>
+    </div>
+
+    <div>
+        <strong>Feli Food Commission:</strong>
+        GHS <span id="totalCommission">0.00</span>
+    </div>
+
+    <div>
+        <strong>Restaurant Earnings:</strong>
+        GHS <span id="totalRestaurantEarnings">0.00</span>
+    </div>
+
+    <div>
+        <strong>Total Orders:</strong>
+        <span id="totalCommissionOrders">0</span>
+    </div>
+</div>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .then(() => {
+          console.log("Feli Food service worker registered successfully.");
+        })
+        .catch((error) => {
+          console.error("Feli Food service worker registration failed:", error);
+        });
+    });
+  }
+</script>
+</body>
+</html>
