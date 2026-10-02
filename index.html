@@ -1672,7 +1672,7 @@ if (paymentMethod === "Paystack") {
            onSuccess: async (transaction) => {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/paystack/verify/${encodeURIComponent(transaction.reference)}`
+    `https://feli-food.onrender.com/api/paystack/verify/${encodeURIComponent(transaction.reference)}`,
     );
 
     const result = await response.json();
@@ -2342,7 +2342,7 @@ let paystackSubaccountCode = "";
 if (bankName && accountName && accountNumber) {
   try {
     const response = await fetch(
-      "http://localhost:3000/api/paystack/subaccount",
+    "https://feli-food.onrender.com/api/paystack/subaccount",
       {
         method: "POST",
         headers: {
