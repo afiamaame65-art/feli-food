@@ -2,14 +2,148 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const axios = require("axios");
+const { Resend } = require("resend");
+const { initializeApp, cert } = require("firebase-admin/app");
+
+const serviceAccount = require("./feli-food-firebase-adminsdk-fbsvc-6af07a7986.json");
+
+initializeApp({
+  credential: cert(serviceAccount)
+});
+const crypto = require("crypto");
 dotenv.config();
-
+const resend = new Resend(process.env.RESEND_API_KEY);
 const app = express();
-
+const otpStore = new Map();
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {
     res.send("Feli Food Paystack Server is running ✅");
+});
+// SEND EMAIL OTP
+app.post("/api/auth/send-email-otp", async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        status: false,
+        message: "Email is required"
+      });
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString();
+
+    const expiresAt = Date.now() + (30 * 60 * 1000);
+
+    otpStore.set(email.trim().toLowerCase(), {
+      otp,
+      role: role || "customer",
+      expiresAt
+    });
+
+    const emailResponse = await resend.emails.send({
+      from: "Feli Food <onboarding@resend.dev>",
+      to: [email],
+      subject: "Your Feli Food Verification Code",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+          <h2 style="color: #ff5a00;">Feli Food</h2>
+
+          <p>Please use the one-time-password (OTP) below:</p>
+
+          <h1 style="letter-spacing: 8px; color: #222;">
+            ${otp}
+          </h1>
+
+          <p>
+            The OTP will expire in <strong>30 minutes</strong>.
+          </p>
+
+          <p>
+            If you did not request this code, you can ignore this email.
+          </p>
+        </div>
+      `
+    });
+
+    if (emailResponse.error) {
+      console.error("Resend error:", emailResponse.error);
+
+      return res.status(500).json({
+        status: false,
+        message: "Could not send OTP email"
+      });
+    }
+
+    res.json({
+      status: true,
+      message: "OTP sent successfully"
+    });
+
+  } catch (error) {
+    console.error("OTP email error:", error);
+
+    res.status(500).json({
+      status: false,
+      message: "Could not send OTP email"
+    });
+  }
+});
+// VERIFY EMAIL OTP
+app.post("/api/auth/verify-email-otp", async (req, res) => {
+  try {
+    const { email, role, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        status: false,
+        message: "Email and OTP are required"
+      });
+    }
+
+    const otpKey = email.trim().toLowerCase();
+
+    const savedOTP = otpStore.get(otpKey);
+
+    if (!savedOTP) {
+      return res.status(400).json({
+        status: false,
+        message: "OTP not found. Please request a new OTP."
+      });
+    }
+
+    if (Date.now() > savedOTP.expiresAt) {
+      otpStore.delete(otpKey);
+
+      return res.status(400).json({
+        status: false,
+        message: "OTP has expired. Please request a new OTP."
+      });
+    }
+
+    if (String(otp) !== String(savedOTP.otp)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid OTP. Please try again."
+      });
+    }
+
+    otpStore.delete(otpKey);
+
+    res.json({
+      status: true,
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
+    console.error("OTP verification error:", error);
+
+    res.status(500).json({
+      status: false,
+      message: "Could not verify OTP"
+    });
+  }
 });
 app.post("/api/paystack/initialize", async (req, res) => {
   try {
@@ -199,4 +333,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Feli Food server running on port ${PORT}`);
-});
+});setInterval(() => {}, 1000);
