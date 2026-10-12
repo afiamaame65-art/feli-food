@@ -43,7 +43,7 @@ app.post("/api/auth/send-email-otp", async (req, res) => {
     });
 
     const emailResponse = await resend.emails.send({
-      from: "Feli Food <onboarding@resend.dev>",
+      from: "Feli Food <otp@felifoodgh.com>",
       to: [email],
       subject: "Your Feli Food Verification Code",
       html: `
