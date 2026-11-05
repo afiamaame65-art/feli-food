@@ -4,3 +4,5 @@ node_modules/
 server/node_modules/
 index.zip
 server/serviceAccountKey.json
+*firebase-adminsdk*.json
+.DS_Store
