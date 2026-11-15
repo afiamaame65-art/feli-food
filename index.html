@@ -5313,10 +5313,10 @@ uniqueRestaurants.forEach((restaurant) => {
 };
   window.saveRestaurantToFirebase = async function (restaurant) {
     try {
-        const restaurantRef = await addDoc(
-            collection(db, "restaurants"),
-            restaurant
-        );
+    const restaurantRef = await addDoc(
+    collection(restaurantDb, "restaurants"),
+    restaurant
+);
 
         console.log(
             "Restaurant saved to Firebase:",
