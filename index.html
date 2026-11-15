@@ -5115,11 +5115,11 @@ window.loadCustomerProfile();
 
     // Load foods from this restaurant's menu
     const menuRef = collection(
-        db,
-        "restaurants",
-        restaurantId,
-        "menu"
-    );
+    restaurantDb,
+    "restaurants",
+    restaurantId,
+    "menu"
+);
 
     const menuSnapshot = await getDocs(menuRef);
 
@@ -5202,14 +5202,13 @@ imageUrl = result.secure_url;
 console.log("Food image uploaded:", imageUrl);
 }
 
-        await addDoc(
-            collection(
-                db,
-                "restaurants",
-                restaurantId,
-                "menu"
-            ),
-            {
+       await addDoc(
+    collection(
+        restaurantDb,
+        "restaurants",
+        restaurantId,
+        "menu"
+    ), {
                 name: foodName,
                 price: foodPrice,
                 category: foodCategory,
