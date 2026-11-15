@@ -3056,6 +3056,47 @@ const newRestaurant = {
     newRestaurant.firebaseId = restaurantId;
     restaurants.push(newRestaurant);
     localStorage.setItem("feliRestaurants", JSON.stringify(restaurants));
+    // SEND NEW RESTAURANT ALERT TO FELI FOOD ADMIN
+try {
+    const currentOwner = restaurantAuth.currentUser;
+
+    if (!currentOwner) {
+        throw new Error("Restaurant owner session not found.");
+    }
+
+    const idToken = await currentOwner.getIdToken();
+
+    const notificationResponse = await fetch(
+        "https://feli-food.onrender.com/api/restaurants/registration-notification",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + idToken
+            },
+            body: JSON.stringify({
+                restaurantId: restaurantId
+            })
+        }
+    );
+
+    const notificationResult = await notificationResponse.json();
+
+    if (!notificationResponse.ok || !notificationResult.success) {
+        console.warn(
+            "Admin registration notification failed:",
+            notificationResult.message
+        );
+    } else {
+        console.log("Admin registration notification submitted:", notificationResult);
+    }
+
+} catch (notificationError) {
+    console.error(
+        "Could not notify Feli Food admin:",
+        notificationError
+    );
+}
     alert(
         "Restaurant registration submitted successfully! 🎉\n\n" +
         "Restaurant: " + restaurantName + "\n" +
@@ -7114,6 +7155,117 @@ window.adminReplySupportMessage = async function (messageId) {
     }
 };
 // ==========================================
+// ==========================================
+// FELI FOOD RESTAURANT REGISTRATION ALERTS
+// ==========================================
+
+window.adminShowRegistrationAlerts = async function () {
+    if (!adminCheckAccess()) return;
+
+    adminShowLoading("🔔 Restaurant Registration Alerts");
+
+    try {
+        const snapshot = await getDocs(
+            collection(db, "adminNotifications")
+        );
+
+        const alerts = snapshot.docs
+            .map(notificationDoc => ({
+                id: notificationDoc.id,
+                ...notificationDoc.data()
+            }))
+            .filter(alert =>
+                alert.type === "restaurant_registration"
+            );
+
+        alerts.sort((a, b) => {
+            const dateA = a.createdAt?.toDate
+                ? a.createdAt.toDate()
+                : new Date(a.createdAt || 0);
+
+            const dateB = b.createdAt?.toDate
+                ? b.createdAt.toDate()
+                : new Date(b.createdAt || 0);
+
+            return dateB - dateA;
+        });
+
+        const area = document.getElementById(
+            "adminManagementContent"
+        );
+
+        if (!alerts.length) {
+            area.innerHTML = `
+                <h3>🔔 Restaurant Registration Alerts</h3>
+                <p>No new restaurant applications have been received yet.</p>
+            `;
+            return;
+        }
+
+        area.innerHTML = `
+            <h3>🔔 Restaurant Registration Alerts (${alerts.length})</h3>
+
+            ${alerts.map(alert => `
+                <div style="
+                    background:white;
+                    border:1px solid #ddd;
+                    border-left:5px solid #ff7a00;
+                    border-radius:10px;
+                    padding:16px;
+                    margin:15px 0;
+                ">
+                    <h3>
+                        🏪 ${adminEscapeHTML(
+                            alert.restaurantName || "Unnamed Restaurant"
+                        )}
+                    </h3>
+
+                    <p>
+                        <strong>Owner:</strong>
+                        ${adminEscapeHTML(alert.ownerName || "—")}
+                    </p>
+
+                    <p>
+                        <strong>Email:</strong>
+                        ${adminEscapeHTML(alert.ownerEmail || "—")}
+                    </p>
+
+                    <p>
+                        <strong>Phone:</strong>
+                        ${adminEscapeHTML(alert.phone || "—")}
+                    </p>
+
+                    <p>
+                        <strong>Location:</strong>
+                        ${adminEscapeHTML(alert.location || "—")}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${adminEscapeHTML(alert.status || "Pending Approval")}
+                    </p>
+
+                    <p>
+                        <strong>Submitted:</strong>
+                        ${adminEscapeHTML(
+                            adminFormatDate(alert.createdAt)
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Email notification:</strong>
+                        ${alert.emailSent === true
+                            ? "Sent"
+                            : "Not confirmed"}
+                    </p>
+                </div>
+            `).join("")}
+        `;
+
+    } catch (error) {
+        adminShowError(error);
+    }
+};
 // FELI FOOD ADMIN PUSH NOTIFICATIONS
 // ==========================================
 
@@ -7385,7 +7537,9 @@ window.adminSendNotification = async function () {
             <button onclick="adminShowRestaurants()">
                 🏪 Restaurant Approvals
             </button>
-
+          <button onclick="adminShowRegistrationAlerts()">
+           🔔 Registration Alerts
+           </button>
             <button onclick="adminShowRiders()">
                 🏍️ Rider Approvals
             </button>

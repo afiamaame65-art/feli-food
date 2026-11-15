@@ -593,6 +593,156 @@ app.post("/api/delivery/verify-code", async (req, res) => {
 });
 // ---------- END DELIVERY VERIFICATION ----------
 // ==========================================
+
+// ==========================================
+// NEW RESTAURANT REGISTRATION ALERTS
+// ==========================================
+
+app.post("/api/restaurants/registration-notification", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : "";
+
+    if (!idToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Restaurant owner login required."
+      });
+    }
+
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    const restaurantId = req.body?.restaurantId;
+
+    if (typeof restaurantId !== "string" || !restaurantId.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Restaurant ID is required."
+      });
+    }
+
+    const restaurantRef = adminDb.collection("restaurants").doc(restaurantId.trim());
+    const restaurantSnapshot = await restaurantRef.get();
+
+    if (!restaurantSnapshot.exists) {
+      return res.status(404).json({
+        success: false,
+        message: "Restaurant application was not found."
+      });
+    }
+
+    const restaurant = restaurantSnapshot.data();
+
+    // Confirm that the logged-in user owns this pending application.
+    if (
+      !restaurant.ownerUid ||
+      restaurant.ownerUid !== decoded.uid ||
+      restaurant.status !== "Pending Approval"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to submit this restaurant alert."
+      });
+    }
+
+    const notificationRef = adminDb
+      .collection("adminNotifications")
+      .doc(`restaurant_${restaurantSnapshot.id}`);
+
+    const existingNotification = await notificationRef.get();
+
+    if (!existingNotification.exists) {
+      await notificationRef.set({
+        type: "restaurant_registration",
+        title: "New restaurant application",
+        message: `${restaurant.name || "A restaurant"} has submitted a registration application.`,
+        restaurantId: restaurantSnapshot.id,
+        restaurantName: restaurant.name || "Unnamed restaurant",
+        ownerName: restaurant.owner || "Not provided",
+        ownerEmail: decoded.email || "Not provided",
+        phone: restaurant.phone || "Not provided",
+        location: restaurant.location || "Not provided",
+        status: "Pending Approval",
+        read: false,
+        emailSent: false,
+        createdAt: FieldValue.serverTimestamp()
+      });
+    }
+
+    const latestNotification = await notificationRef.get();
+    const notificationData = latestNotification.data() || {};
+
+    // Retry email if a previous attempt did not complete.
+    if (notificationData.emailSent !== true) {
+      if (!process.env.RESEND_API_KEY) {
+        console.error("RESEND_API_KEY is missing.");
+        return res.status(200).json({
+          success: true,
+          notificationCreated: true,
+          emailSent: false,
+          message: "Dashboard alert saved; email service is not configured."
+        });
+      }
+
+      const escapeEmailHtml = (value) =>
+        String(value ?? "Not provided").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;"
+        }[char]));
+
+      const emailResult = await resend.emails.send({
+        from: "Feli Food <otp@felifoodgh.com>",
+        to: ["loddyfx58@gmail.com"],
+        subject: `New restaurant application: ${String(restaurant.name || "Unnamed restaurant").slice(0, 120)}`,
+        html: `
+          <h2>New Feli Food Restaurant Application</h2>
+          <p>A restaurant has submitted an application and is waiting for your approval.</p>
+          <p><strong>Restaurant:</strong> ${escapeEmailHtml(restaurant.name)}</p>
+          <p><strong>Owner:</strong> ${escapeEmailHtml(restaurant.owner)}</p>
+          <p><strong>Owner email:</strong> ${escapeEmailHtml(decoded.email)}</p>
+          <p><strong>Phone:</strong> ${escapeEmailHtml(restaurant.phone)}</p>
+          <p><strong>Location:</strong> ${escapeEmailHtml(restaurant.location)}</p>
+          <p><strong>Status:</strong> Pending Approval</p>
+          <p>Sign in to the Feli Food Admin Dashboard to review this application.</p>
+        `
+      });
+
+      if (emailResult?.error) {
+        console.error("Restaurant application email failed:", emailResult.error);
+        return res.status(200).json({
+          success: true,
+          notificationCreated: true,
+          emailSent: false,
+          message: "Dashboard alert saved; admin email could not be sent."
+        });
+      }
+
+      await notificationRef.set({
+        emailSent: true,
+        emailSentAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+
+    return res.json({
+      success: true,
+      notificationCreated: true,
+      emailSent: true,
+      message: "Restaurant application alert submitted."
+    });
+
+  } catch (error) {
+    console.error("Restaurant registration notification error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not submit the restaurant registration alert."
+    });
+  }
+});
+
 // FELI FOOD ADMIN PUSH NOTIFICATIONS
 // ==========================================
 

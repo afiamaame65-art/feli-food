@@ -5,3 +5,8 @@
 **/serviceAccountKey.json
 .DS_Store
 # Protect Firebase credentials
+
+# Protect Firebase credentials and backups
+**/*-new-key.json
+**/feli-food-backup-*.json
+**/*backup*.json
