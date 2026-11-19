@@ -2289,13 +2289,15 @@ window.feliCurrentOrders = orders;
                 <p><strong>Total:</strong> GHS ${order.total}</p>
 
                 ${
-                    order.deliveryCode && ["Ready", "Accepted"].includes(status)
+                    order.riderArrivedAt &&
+                   order.deliveryCode &&
+                  ["Ready", "Accepted"].includes(status)
                     ? `<div style="margin:15px 0;padding:14px;border:2px dashed #ff7a00;border-radius:12px;background:#fff7ed;text-align:center;">
                         <strong style="display:block;color:#8a3d00;">🔐 DELIVERY VERIFICATION CODE</strong>
                         <span style="display:block;font-size:28px;letter-spacing:7px;font-weight:bold;margin:8px 0;color:#222;">${String(order.deliveryCode).replace(/[^0-9]/g, "")}</span>
                         <small style="color:#8a3d00;">Give this code to your rider only when your food arrives.</small>
                        </div>`
-                    : (order.firebaseId && ["Ready", "Accepted"].includes(status)
+                    : (order.firebaseId && order.riderArrivedAt && ["Ready", "Accepted"].includes(status)
                         ? `<button onclick="window.recoverFeliDeliveryCode('${order.firebaseId}')" style="width:100%;margin:12px 0;padding:12px;border:0;border-radius:10px;background:#ff7a00;color:white;font-weight:bold;cursor:pointer;">🔄 Recover delivery code</button>`
                         : "")
                 }
@@ -4433,6 +4435,58 @@ alert("✅ Restaurant owner signed in successfully!");
 window.getDocs = getDocs;
 window.collection = collection;
 window.db = db;
+window.updateOrderStatus = async function(orderId, newStatus) {
+    try {
+        const user = window.restaurantAuth?.currentUser;
+        const restaurant = window.currentRestaurant;
+
+        if (!user || !restaurant?.id) {
+            alert("Please sign in as a restaurant owner first.");
+            return;
+        }
+
+        const orderRef = doc(
+            window.restaurantDb,
+            "orders",
+            orderId
+        );
+
+        const orderSnapshot = await getDoc(orderRef);
+
+        if (!orderSnapshot.exists()) {
+            alert("Order could not be found.");
+            return;
+        }
+
+        const orderData = orderSnapshot.data();
+
+        const belongsToRestaurant =
+            orderData.items?.some(
+                item => item.restaurantId === restaurant.id
+            );
+
+        const isOwner =
+            orderData.restaurantOwnerUids?.includes(user.uid);
+
+        if (!belongsToRestaurant || !isOwner) {
+            alert("You are not authorised to update this order.");
+            return;
+        }
+
+        await updateDoc(orderRef, {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        });
+
+        await window.loadOrdersFromFirebase();
+
+        console.log("Order status updated:", orderId, newStatus);
+
+    } catch (error) {
+        console.error("Order status update error:", error);
+        alert("Could not update order: " + error.message);
+    }
+};
 const storage = getStorage(app);
 window.feliStorage = storage;
 
@@ -4687,11 +4741,12 @@ window.enableFeliNotifications = async function () {
       return;
     }
 
-    if (!window.feliServiceWorkerRegistration) {
-      alert("Please wait for Feli Food to finish loading.");
-      return;
-    }
+    const registration = await navigator.serviceWorker.ready;
 
+if (!registration) {
+  alert("Feli Food notification service is not ready.");
+  return;
+}
     const permission = await Notification.requestPermission();
 
     if (permission !== "granted") {
@@ -4702,7 +4757,6 @@ window.enableFeliNotifications = async function () {
     const supported = await isSupported();
 
     if (!supported) {
-      alert("Push notifications are not supported on this browser.");
       return;
     }
 
@@ -4710,7 +4764,7 @@ window.enableFeliNotifications = async function () {
 
     const token = await getToken(messaging, {
       vapidKey: "BD5ajx5gZZSJUacYg84fssjp5Z4lAvYy16BAeB6jYTYO3ZQpC_ca8AzLisEFoSLuT2KJvGUsAO7bnBk7Z1-kTXM",
-      serviceWorkerRegistration: window.feliServiceWorkerRegistration
+      serviceWorkerRegistration: registration
     });
 
     if (!token) {
@@ -5483,9 +5537,10 @@ window.loadOrdersFromFirebase = async function () {
                 ...docSnap.data(),
                 orderNumber: docSnap.data().orderNumber || (index + 1),
                 firebaseId: docSnap.id,
-                ...(localCodeByOrderId.has(docSnap.id)
-                    ? { deliveryCode: localCodeByOrderId.get(docSnap.id) }
-                    : {})
+                ...(!docSnap.data().riderArrivedAt &&
+              localCodeByOrderId.has(docSnap.id)
+             ? { deliveryCode: localCodeByOrderId.get(docSnap.id) }
+            : {})
             }));
 
             localStorage.setItem(
@@ -5868,13 +5923,17 @@ window.listenForRiderActiveOrders = function () {
     <p>Total: GHC${Number(order.total || 0).toFixed(2)}</p>
     <p>Delivery status: ${order.deliveryStatus || "Accepted"}</p>
 
-    ${
-        order.deliveryStatus === "Accepted"
-        ? `<button onclick="window.completeRiderOrder('${orderDoc.id}')">
-            🔐 Verify Customer Code
-           </button>`
-        : ""
-    }
+   ${
+  order.deliveryStatus === "Accepted" && !order.riderArrivedAt
+    ? `<button onclick="window.markRiderArrived('${orderDoc.id}')">
+        📍 I've Arrived – Send Code
+       </button>`
+    : order.deliveryStatus === "Accepted" && order.riderArrivedAt
+      ? `<button onclick="window.completeRiderOrder('${orderDoc.id}')">
+          🔐 Verify Customer Code
+        </button>`
+      : ""
+}
 `;
                 activeOrdersDiv.appendChild(card);
             });
@@ -5938,6 +5997,48 @@ window.acceptRiderOrder = async function(orderId) {
         alert("Could not accept delivery: " + error.message);
     }
 };
+// ---------- RIDER ARRIVAL: SEND CUSTOMER CODE ----------
+window.markRiderArrived = async function(orderId) {
+  const user = riderAuth.currentUser;
+
+  if (!user) {
+    alert("Please log in as a rider first.");
+    return;
+  }
+
+  if (!confirm("Have you arrived at the customer's delivery location?")) {
+    return;
+  }
+
+  try {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(
+      "https://feli-food.onrender.com/api/delivery/arrived",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ orderId })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Could not record arrival.");
+    }
+
+    alert(result.message || "Arrival recorded successfully!");
+
+  } catch (error) {
+    console.error("Rider arrival error:", error);
+    alert("Could not record arrival: " + error.message);
+  }
+};
+// ---------- END RIDER ARRIVAL ----------
 
 window.completeRiderOrder = async function(orderId) {
     const user = riderAuth.currentUser;

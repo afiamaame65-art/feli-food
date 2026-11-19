@@ -453,7 +453,11 @@ app.post("/api/delivery/recover-code", async (req, res) => {
       ) {
         throw new Error("This order is already delivered.");
       }
-
+     if (!order.riderArrivedAt) {
+     throw new Error(
+      "Your rider has not arrived yet. Your delivery code will be available when the rider arrives."
+  );
+}
       if (!codeSnap.exists) {
         throw new Error(
           "No delivery code exists for this order. Contact Feli Food support."
@@ -593,6 +597,161 @@ app.post("/api/delivery/verify-code", async (req, res) => {
 });
 // ---------- END DELIVERY VERIFICATION ----------
 // ==========================================
+
+// ---------- RIDER ARRIVAL: SEND FRESH CUSTOMER DELIVERY CODE ----------
+app.post("/api/delivery/arrived", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : "";
+
+    if (!idToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Please sign in again."
+      });
+    }
+
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    const { orderId } = req.body || {};
+
+    if (!orderId || typeof orderId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required."
+      });
+    }
+
+    const orderRef = adminDb.collection("orders").doc(orderId);
+    const riderRef = adminDb.collection("riders").doc(decoded.uid);
+    const codeRef = adminDb.collection("deliveryVerifications").doc(orderId);
+
+    const result = await adminDb.runTransaction(async (transaction) => {
+      const [orderSnap, riderSnap, codeSnap] = await Promise.all([
+        transaction.get(orderRef),
+        transaction.get(riderRef),
+        transaction.get(codeRef)
+      ]);
+
+      if (!orderSnap.exists) throw new Error("Order not found.");
+      if (!riderSnap.exists || riderSnap.data().status !== "Approved") {
+        throw new Error("Your rider account is not approved.");
+      }
+
+      const order = orderSnap.data();
+    if (order.riderArrivedAt) {
+   throw new Error("Arrival has already been recorded for this order.");
+}
+      if (order.riderId !== decoded.uid) {
+        throw new Error("This delivery is not assigned to you.");
+      }
+
+      if (order.deliveryStatus !== "Accepted") {
+        throw new Error("This order is not awaiting delivery.");
+      }
+
+      if (!order.customerId) {
+        throw new Error("Customer account not found for this order.");
+      }
+
+      if (order.status === "Delivered") {
+        throw new Error("This order has already been delivered.");
+      }
+
+      if (!codeSnap.exists || codeSnap.data().used) {
+        throw new Error("Delivery code is unavailable.");
+      }
+
+      const code = String(crypto.randomInt(100000, 1000000));
+      const salt = crypto.randomBytes(16).toString("hex");
+      const codeHash = crypto.createHash("sha256")
+        .update(salt + code)
+        .digest("hex");
+
+      transaction.update(codeRef, {
+        codeHash,
+        salt,
+        attempts: 0,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        used: false,
+        arrivedAt: FieldValue.serverTimestamp()
+      });
+
+      transaction.update(orderRef, {
+        riderArrivedAt: FieldValue.serverTimestamp()
+      });
+
+      return {
+        code,
+        customerUid: order.customerId
+      };
+    });
+
+    const tokenSnap = await adminDb
+      .collection("fcmTokens")
+      .doc(result.customerUid)
+      .get();
+
+    if (!tokenSnap.exists || !tokenSnap.data().token) {
+      return res.json({
+        success: true,
+        notificationSent: false,
+        message: "Arrival recorded. Customer must recover the delivery code in My Orders."
+      });
+    }
+
+    const tokenData = tokenSnap.data();
+
+    if (tokenData.customerId !== result.customerUid) {
+      return res.status(409).json({
+        success: true,
+        notificationSent: false,
+        message: "Arrival recorded. Customer must recover the delivery code in My Orders."
+      });
+    }
+
+    try {
+      await adminMessaging.send({
+        token: tokenData.token,
+        notification: {
+          title: "Your Feli Food rider has arrived!",
+          body: `Your delivery verification code is ${result.code}. Share it with your rider when you receive your food.`
+        },
+        data: {
+          type: "delivery_arrival",
+          orderId
+        }
+      });
+
+      return res.json({
+        success: true,
+        notificationSent: true,
+        message: "Arrival recorded and customer notified."
+      });
+    } catch (pushError) {
+      console.error("Customer arrival notification error:", pushError);
+
+      return res.json({
+        success: true,
+        notificationSent: false,
+        message: "Arrival recorded. Customer can recover the code in My Orders."
+      });
+    }
+
+  } catch (error) {
+    console.error("Rider arrival error:", error);
+
+    const clientError = /not found|not assigned|not approved|not awaiting|already|unavailable/i.test(error.message);
+
+    return res.status(clientError ? 400 : 500).json({
+      success: false,
+      message: error.message || "Could not record rider arrival."
+    });
+  }
+});
+// ---------- END RIDER ARRIVAL NOTIFICATION ----------
 
 // ==========================================
 // NEW RESTAURANT REGISTRATION ALERTS

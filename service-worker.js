@@ -6,6 +6,27 @@ const FILES_TO_CACHE = [
   "./manifest.json"
 ];
 
+// FIREBASE MESSAGING SUPPORT
+importScripts(
+  "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"
+);
+
+importScripts(
+  "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging-compat.js"
+);
+
+firebase.initializeApp({
+  apiKey: "AIzaSyASId2lvEXuucygOz1ETx60OyHvKFiQNqw",
+  authDomain: "feli-food.firebaseapp.com",
+  projectId: "feli-food",
+  storageBucket: "feli-food.firebasestorage.app",
+  messagingSenderId: "132325587813",
+  appId: "1:132325587813:web:12b60e962263afa49c7f8c"
+});
+
+const messaging = firebase.messaging();
+
+// INSTALL AND CACHE
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,6 +37,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+// ACTIVATE
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -30,6 +52,27 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// NOTIFICATION CLICK
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+
+      return clients.openWindow("./");
+    })
+  );
+});
+
+// OFFLINE SUPPORT
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request).catch(() => {
