@@ -5446,28 +5446,33 @@ window.loadOrdersFromFirebase = async function () {
 
         const isRestaurantUser = !!window.restaurantAuth?.currentUser;
         const activeDb = isRestaurantUser ? window.restaurantDb : db;
+
         const isAdmin =
-            currentUser.email?.toLowerCase() === "loddyfx58@gmail.com" ||
-            currentUser.email?.toLowerCase() === "cobbylobby01@gmail.com";
+            ["loddyfx58@gmail.com", "cobbylobby01@gmail.com"]
+                .includes(currentUser.email?.toLowerCase());
 
-        const ordersRef = isAdmin
-            ? collection(activeDb, "orders")
-            : window.currentRestaurant?.id
-                ? query(
-                    collection(activeDb, "orders"),
-                    where("restaurantIds", "array-contains", window.currentRestaurant.id)
-                  )
-                : query(
-                    collection(activeDb, "orders"),
-                    where("customerId", "==", currentUser.uid)
-                  );
+        let ordersRef;
 
-        // Read existing Firebase orders first. Do not render stale local orders
-        // while the real-time listener is still waiting for its first response.
+        if (isAdmin) {
+            ordersRef = collection(activeDb, "orders");
+        } else if (isRestaurantUser) {
+            // Fetch only orders assigned to this restaurant owner.
+            ordersRef = query(
+                collection(activeDb, "orders"),
+                where("restaurantOwnerUids", "array-contains", currentUser.uid)
+            );
+        } else {
+            ordersRef = query(
+                collection(activeDb, "orders"),
+                where("customerId", "==", currentUser.uid)
+            );
+        }
+
         const applyOrdersSnapshot = (snapshot) => {
-            // Preserve the one-time delivery code locally for the customer;
-            // it is deliberately not written into the public Firestore order.
-            const previousLocalOrders = JSON.parse(localStorage.getItem("feliOrders") || "[]");
+            const previousLocalOrders = JSON.parse(
+                localStorage.getItem("feliOrders") || "[]"
+            );
+
             const localCodeByOrderId = new Map(
                 previousLocalOrders
                     .filter(order => order.firebaseId && order.deliveryCode)
@@ -5483,201 +5488,63 @@ window.loadOrdersFromFirebase = async function () {
                     : {})
             }));
 
-            localStorage.setItem("feliOrders", JSON.stringify(firebaseOrders));
+            localStorage.setItem(
+                "feliOrders",
+                JSON.stringify(firebaseOrders)
+            );
 
-            if (document.getElementById("ordersDashboard")?.style.display === "block") {
+            if (
+                document.getElementById("ordersDashboard")?.style.display === "block"
+            ) {
                 showOrders();
             }
+
             if (document.getElementById("myOrdersTracker")) {
                 showMyOrders();
             }
-
-            const currentPhone = localStorage.getItem("feliCurrentCustomerPhone");
-            if (currentPhone && document.getElementById("myOrdersTracker")) {
-                firebaseOrders
-                    .filter(order => order.phone === currentPhone)
-                    .forEach(order => {
-                        const statusKey = "feliOrderStatus_" + order.firebaseId;
-                        const oldStatus = localStorage.getItem(statusKey);
-                        const notificationKey = "feliLastNotified_" + order.firebaseId;
-                        const lastNotifiedStatus = sessionStorage.getItem(notificationKey);
-
-                        if (oldStatus && oldStatus !== order.status && lastNotifiedStatus !== order.status) {
-                            sessionStorage.setItem(notificationKey, order.status);
-                            alert(
-                                "🔔 ORDER UPDATE\n\n" +
-                                "Order #" + (order.restaurantOrderNumber || order.orderNumber) +
-                                "\nStatus: " + order.status
-                            );
-                        }
-                        localStorage.setItem(statusKey, order.status || "Pending");
-                    });
-            }
         };
 
-        // First fetch is awaited, so callers such as showOrders() see Firebase IDs.
+        // Get the current orders first.
         const initialSnapshot = await getDocs(ordersRef);
         applyOrdersSnapshot(initialSnapshot);
 
-        // Start one real-time listener after the initial Firebase read succeeds.
-        if (!window.firebaseOrdersListenerStarted) {
-            window.firebaseOrdersListenerStarted = true;
-            onSnapshot(ordersRef, applyOrdersSnapshot, (error) => {
-                console.error("Live orders listener error:", error);
-                window.firebaseOrdersListenerStarted = false;
-            });
+        // Keep one listener for the current account and query.
+        const listenerKey = [
+            currentUser.uid,
+            isRestaurantUser ? "restaurant" : "customer",
+            isAdmin ? "admin" : "user"
+        ].join("_");
+
+        if (window.firebaseOrdersListenerKey !== listenerKey) {
+            if (window.firebaseOrdersUnsubscribe) {
+                window.firebaseOrdersUnsubscribe();
+            }
+
+            window.firebaseOrdersUnsubscribe = onSnapshot(
+                ordersRef,
+                applyOrdersSnapshot,
+                (error) => {
+                    console.error("Live orders listener error:", error);
+                    window.firebaseOrdersUnsubscribe = null;
+                    window.firebaseOrdersListenerKey = null;
+                }
+            );
+
+            window.firebaseOrdersListenerKey = listenerKey;
         }
 
+        console.log(
+            "Orders loaded successfully:",
+            initialSnapshot.size
+        );
+
         return true;
+
     } catch (error) {
         console.error("Error loading orders from Firebase:", error);
-        window.firebaseOrdersListenerStarted = false;
         return false;
     }
 };
-window.loadOrdersFromFirebase();
-window.updateFirebaseOrderStatus = async function (firebaseId, status) {
-    try {
-        console.log("RESTAURANT USER UID:", restaurantAuth.currentUser?.uid);
-        console.log("RESTAURANT USER EMAIL:", restaurantAuth.currentUser?.email);
-
-        if (!restaurantAuth.currentUser) {
-            throw new Error("Restaurant owner is not signed in.");
-        }
-
-        const orderRef = doc(restaurantDb, "orders", firebaseId);
-
-        await updateDoc(orderRef, {
-            status: status
-        });
-
-        console.log("Firebase order updated:", firebaseId, status);
-        return true;
-
-    } catch (error) {
-        console.error("Error updating Firebase order:", error);
-        return false;
-    }
-};
-window.updateOrderStatus = async function (firebaseId, status) {
-    try {
-        if (!firebaseId || firebaseId === "undefined" || firebaseId === "null") {
-            alert("This order is missing its Firebase ID. Please refresh the Orders page and try again.");
-            if (window.loadOrdersFromFirebase) {
-                window.loadOrdersFromFirebase();
-            }
-            return;
-        }
-
-        console.log("RESTAURANT USER UID:", auth.currentUser?.uid);
-console.log("RESTAURANT USER EMAIL:", auth.currentUser?.email);
-        const allOrders = JSON.parse(
-    localStorage.getItem("feliOrders") || "[]"
-);
-
-let order = allOrders.find(
-    order => order.firebaseId === firebaseId
-);
-
-// If the order is not in localStorage, get it directly from Firebase
-if (!order) {
-    const orderRef = doc(db, "orders", firebaseId);
-    const orderSnap = await getDoc(orderRef);
-
-    if (!orderSnap.exists()) {
-        alert("Order not found.");
-        return;
-    }
-
-    order = {
-        firebaseId: firebaseId,
-        ...orderSnap.data()
-    };
-
-    allOrders.push(order);
-
-    localStorage.setItem(
-        "feliOrders",
-        JSON.stringify(allOrders)
-    );
-}
-
-        
-        // Update Firebase if this order has a Firebase ID
-        if (order.firebaseId) {
-            const success =
-                await window.updateFirebaseOrderStatus(
-                    order.firebaseId,
-                    status
-                );
-
-            if (!success) {
-                alert("Could not update order status.");
-                return;
-            }
-        }
-
-        // Update local order
-        order.status = status;
-
-        localStorage.setItem(
-            "feliOrders",
-            JSON.stringify(allOrders)
-        );
-
-       // Refresh orders on the screen
-showOrders();
-
-// Re-apply the current search/filter
-filterManagerOrders();
-        
-    } catch (error) {
-    console.error("Error updating order status:", error);
-    alert("Something went wrong.");
-}
-};
-window.updatePaymentStatus = async function (index) {
-    try {
-        const orders = JSON.parse(
-            localStorage.getItem("feliOrders") || "[]"
-        );
-
-        const order = orders[index];
-
-        if (!order) {
-            alert("Order not found.");
-            return;
-        }
-
-        if (!order.firebaseId) {
-            alert("This order is not connected to Firebase.");
-            return;
-        }
-
-        await updateDoc(
-            doc(db, "orders", order.firebaseId),
-            {
-                paymentStatus: "Paid"
-            }
-        );
-
-        order.paymentStatus = "Paid";
-
-        localStorage.setItem(
-            "feliOrders",
-            JSON.stringify(orders)
-        );
-
-        alert("✅ Payment marked as Paid.");
-
-        showOrders();
-
-    } catch (error) {
-        console.error("Error updating payment status:", error);
-        alert("❌ Could not update payment status.");
-    }
-};
-
 window.loadOrdersFromFirebase();
 window.toggleRestaurantStatus = async function () {
     try {
