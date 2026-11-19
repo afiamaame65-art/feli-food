@@ -4475,7 +4475,7 @@ window.updateOrderStatus = async function(orderId, newStatus) {
 
         await updateDoc(orderRef, {
             status: newStatus,
-            updatedAt: new Date().toISOString()
+            
         });
 
         await window.loadOrdersFromFirebase();
