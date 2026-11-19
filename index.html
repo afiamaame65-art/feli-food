@@ -4784,6 +4784,14 @@ await setDoc(doc(db, "fcmTokens", user.uid), {
     alert("Could not enable notifications. Please try again.");
   }
 };
+// FELI FOOD CUSTOMER NOTIFICATION BUTTON
+window.showFeliNotificationButton = function () {
+    const button = document.createElement("button");
+    button.textContent = "🔔 Enable Feli Food Notifications";
+    button.onclick = window.enableFeliNotifications;
+    button.style.cssText = "display:block;width:100%;padding:14px;margin:15px 0;background:#ff7a00;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;";
+    document.body.appendChild(button);
+};
 // FELI FOOD CUSTOMER SUPPORT
 
 window.openCustomerSupport = async function () {
@@ -4909,6 +4917,7 @@ window.sendCustomerSupportMessage = async function () {
 
     if (user) {
         authMessage.textContent = "✅ Signed in as " + user.email;
+        window.showFeliNotificationButton();
     } else {
         authMessage.textContent = "";
     }
