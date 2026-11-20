@@ -4778,7 +4778,23 @@ if (!registration) {
     }
 
     const messaging = getMessaging(app);
+// FELI FOOD FOREGROUND NOTIFICATIONS
+if (!window.feliForegroundListenerAttached) {
+  onMessage(messaging, (payload) => {
+    console.log("Feli Food foreground notification:", payload);
 
+    const title = payload.notification?.title || "Feli Food";
+
+    const options = {
+      body: payload.notification?.body || "You have a new update.",
+      icon: "./feli-icon-192.png"
+    };
+
+    new Notification(title, options);
+  });
+
+  window.feliForegroundListenerAttached = true;
+}
     const token = await getToken(messaging, {
       vapidKey: "BD5ajx5gZZSJUacYg84fssjp5Z4lAvYy16BAeB6jYTYO3ZQpC_ca8AzLisEFoSLuT2KJvGUsAO7bnBk7Z1-kTXM",
       serviceWorkerRegistration: registration
