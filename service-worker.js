@@ -25,7 +25,22 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+// FELI FOOD BACKGROUND NOTIFICATIONS
+messaging.onBackgroundMessage((payload) => {
+  console.log("Feli Food background notification:", payload);
 
+  const title =
+    payload.notification?.title || "Feli Food";
+
+  const options = {
+    body:
+      payload.notification?.body || "You have a new update.",
+    icon: "./feli-icon-192.png",
+    badge: "./feli-icon-192.png"
+  };
+
+  return self.registration.showNotification(title, options);
+});
 // INSTALL AND CACHE
 self.addEventListener("install", (event) => {
   event.waitUntil(
