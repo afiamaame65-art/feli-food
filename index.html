@@ -4016,8 +4016,9 @@ import {
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 sendPasswordResetEmail,
+sendEmailVerification,
 onAuthStateChanged,
-signOut
+ignOut
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
@@ -4726,6 +4727,22 @@ if (!saved) {
 };
 const auth = getAuth(app);
 window.feliAuth = auth;
+window.sendFeliAdminVerification = async function () {
+    const user = auth.currentUser;
+
+    if (!user) {
+        alert("Please sign in first.");
+        return;
+    }
+
+    try {
+        await sendEmailVerification(user);
+        alert("Verification email sent! Check your inbox and spam folder.");
+    } catch (error) {
+        console.error("Verification email error:", error);
+        alert(error.message);
+    }
+};
 // FELI FOOD CUSTOMER NOTIFICATION SUBSCRIPTION
 window.enableFeliNotifications = async function () {
   try {
