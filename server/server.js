@@ -1028,6 +1028,120 @@ app.post(
 
 // END FELI FOOD ADMIN PUSH NOTIFICATIONS
 
+// FELI FOOD CUSTOMER ORDER STATUS NOTIFICATIONS
+app.post("/api/orders/status-notification", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const idToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : "";
+
+    if (!idToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Please sign in again."
+      });
+    }
+
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    const { orderId, status } = req.body || {};
+
+    if (
+      typeof orderId !== "string" ||
+      typeof status !== "string" ||
+      !orderId.trim() ||
+      !status.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID and status are required."
+      });
+    }
+
+    const orderSnap = await adminDb
+      .collection("orders")
+      .doc(orderId)
+      .get();
+
+    if (!orderSnap.exists) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found."
+      });
+    }
+
+    const order = orderSnap.data();
+
+    if (!order.restaurantOwnerUids?.includes(decoded.uid)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorised to notify this customer."
+      });
+    }
+
+    if (order.status !== status) {
+      return res.status(409).json({
+        success: false,
+        message: "Order status does not match."
+      });
+    }
+
+    if (!order.customerId) {
+      return res.json({
+        success: true,
+        notificationSent: false,
+        message: "Customer account not found."
+      });
+    }
+
+    const tokenSnap = await adminDb
+      .collection("fcmTokens")
+      .doc(order.customerId)
+      .get();
+
+    if (
+      !tokenSnap.exists ||
+      tokenSnap.data().customerId !== order.customerId ||
+      !tokenSnap.data().token
+    ) {
+      return res.json({
+        success: true,
+        notificationSent: false,
+        message: "Customer has no registered notification token."
+      });
+    }
+
+    await adminMessaging.send({
+      token: tokenSnap.data().token,
+      notification: {
+        title: "Feli Food Order Update",
+        body: `Your order status is now: ${status}.`
+      },
+      data: {
+        type: "order_status",
+        orderId: orderId,
+        status: status
+      }
+    });
+
+    return res.json({
+      success: true,
+      notificationSent: true,
+      message: "Customer notification sent."
+    });
+
+  } catch (error) {
+    console.error("Order status notification error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not send customer notification."
+    });
+  }
+});
+// END CUSTOMER ORDER STATUS NOTIFICATIONS
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Feli Food server running on port ${PORT}`);

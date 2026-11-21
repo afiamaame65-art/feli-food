@@ -4478,7 +4478,32 @@ window.updateOrderStatus = async function(orderId, newStatus) {
             status: newStatus,
             
         });
+// SEND CUSTOMER ORDER STATUS NOTIFICATION
+try {
+    const idToken = await user.getIdToken();
 
+    const notificationResponse = await fetch(
+        "https://feli-food.onrender.com/api/orders/status-notification",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+                orderId: orderId,
+                status: newStatus
+            })
+        }
+    );
+
+    const notificationResult = await notificationResponse.json();
+
+    console.log("Customer notification result:", notificationResult);
+
+} catch (notificationError) {
+    console.error("Customer notification failed:", notificationError);
+}
         await window.loadOrdersFromFirebase();
 
         console.log("Order status updated:", orderId, newStatus);
