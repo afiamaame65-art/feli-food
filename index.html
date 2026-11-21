@@ -6560,7 +6560,7 @@ window.adminShowRiders = async function () {
 
     try {
         // Rider registrations are stored in riderDb under the rider's Auth UID.
-        const snapshot = await getDocs(collection(riderDb, "riders"));
+        const snapshot = await getDocs(collection(db, "riders"));
         const area = document.getElementById("adminManagementContent");
         if (!area) return;
 
@@ -6600,7 +6600,7 @@ window.approveRider = async function (riderId) {
     if (!confirm("Approve this rider? They will be allowed to go online and accept deliveries.")) return;
 
     try {
-        await updateDoc(doc(riderDb, "riders", riderId), {
+        await updateDoc(doc(db, "riders", riderId), {
             status: "Approved",
             approved: true,
             approvedAt: new Date().toISOString(),
