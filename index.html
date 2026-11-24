@@ -1008,7 +1008,23 @@
       placeholder="Your location"
       style="width:100%; padding:12px; margin:8px 0;"
     >
+<select
+  id="riderVehicleType"
+  style="width:100%; padding:12px; margin:8px 0;"
+>
+  <option value="">Select vehicle type</option>
+  <option value="Motorcycle">Motorcycle</option>
+  <option value="Bicycle">Bicycle</option>
+  <option value="Car">Car</option>
+  <option value="Tricycle">Tricycle</option>
+</select>
 
+<input
+  type="text"
+  id="riderVehicleRegistrationNumber"
+  placeholder="Vehicle registration number"
+  style="width:100%; padding:12px; margin:8px 0;"
+>
     <input
       type="password"
       id="riderPassword"
@@ -1058,7 +1074,49 @@
     >
       🟢 Go Online
     </button>
+<button
+  type="button"
+  onclick="showRiderProfile()"
+  style="padding:12px 20px; margin-top:10px;"
+>
+  ✏️ Edit Profile
+</button>
 
+<div id="riderProfilePanel" style="display:none; margin-top:15px;">
+  <h3>✏️ Edit Rider Profile</h3>
+
+  <input id="editRiderName" type="text" placeholder="Full name"
+    style="width:100%; padding:12px; margin:8px 0;">
+
+  <input id="editRiderPhone" type="tel" placeholder="Phone number"
+    style="width:100%; padding:12px; margin:8px 0;">
+
+  <input id="editRiderLocation" type="text" placeholder="Location"
+    style="width:100%; padding:12px; margin:8px 0;">
+
+  <select id="editRiderVehicleType"
+    style="width:100%; padding:12px; margin:8px 0;">
+    <option value="">Select vehicle type</option>
+    <option value="Motorcycle">Motorcycle</option>
+    <option value="Bicycle">Bicycle</option>
+    <option value="Car">Car</option>
+    <option value="Tricycle">Tricycle</option>
+  </select>
+
+  <input id="editRiderVehicleRegistrationNumber" type="text"
+    placeholder="Vehicle registration number"
+    style="width:100%; padding:12px; margin:8px 0;">
+
+  <button type="button" onclick="saveRiderProfile()">
+    💾 Save Profile
+  </button>
+
+  <button type="button" onclick="hideRiderProfile()">
+    Cancel
+  </button>
+
+  <p id="riderProfileMessage"></p>
+</div>
     <hr>
 
     <h3>📦 Available Deliveries</h3>
@@ -1113,10 +1171,52 @@
 
  <button type="button" onclick="showOrders()">📦 Manage Orders</button>
 <button type="button" onclick="window.showManagerMenu()">🍔 Manage Food</button>
+<button type="button" onclick="window.showRestaurantProfile()">🏪 My Restaurant Profile</button>
 <button type="button" onclick="toggleRestaurantStatus()">🟢 Open / 🔴 Closed</button>
  <button type="button" onclick="showManagerReviews(); document.getElementById('managerReviews').scrollIntoView({behavior:'smooth'});">⭐ Reviews</button>
  <button type="button" onclick="showCommission()">💰 Commission</button>
  <button type="button" onclick="logoutRestaurantOwner()">🔓 Logout</button>
+ <div id="restaurantProfilePanel" style="display:none; margin-top:20px; padding:15px; background:white; border-radius:10px;">
+
+    <h3>🏪 My Restaurant Profile</h3>
+
+    <label>Phone Number</label>
+    <input id="editRestaurantPhone" type="tel" placeholder="Restaurant phone" style="width:100%;padding:10px;margin:8px 0;">
+
+    <label>Location</label>
+    <input id="editRestaurantLocation" type="text" placeholder="Restaurant location" style="width:100%;padding:10px;margin:8px 0;">
+
+    <label>Description</label>
+    <textarea id="editRestaurantDescription" placeholder="Describe your restaurant" style="width:100%;padding:10px;margin:8px 0;"></textarea>
+
+    <label>Restaurant Logo</label>
+    <input id="editRestaurantLogo" type="file" accept="image/*" style="width:100%;margin:8px 0;">
+
+    <label>Payout Method</label>
+    <select id="editRestaurantPayoutMethod" onchange="toggleEditRestaurantPayoutFields()" style="width:100%;padding:10px;margin:8px 0;">
+        <option value="">Select payout method</option>
+        <option value="Mobile Money">Mobile Money</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+    </select>
+
+    <div id="editRestaurantMobileMoneyFields" style="display:none;">
+        <input id="editRestaurantMobileMoneyNetwork" placeholder="Mobile Money Network" style="width:100%;padding:10px;margin:8px 0;">
+        <input id="editRestaurantMobileMoneyNumber" placeholder="Mobile Money Number" style="width:100%;padding:10px;margin:8px 0;">
+        <input id="editRestaurantMobileMoneyName" placeholder="Account Name" style="width:100%;padding:10px;margin:8px 0;">
+    </div>
+
+    <div id="editRestaurantBankFields" style="display:none;">
+        <input id="editRestaurantBankName" placeholder="Bank Name" style="width:100%;padding:10px;margin:8px 0;">
+        <input id="editRestaurantAccountName" placeholder="Account Holder Name" style="width:100%;padding:10px;margin:8px 0;">
+        <input id="editRestaurantAccountNumber" placeholder="Account Number" style="width:100%;padding:10px;margin:8px 0;">
+    </div>
+
+    <button type="button" onclick="saveRestaurantProfile()">💾 Save Profile</button>
+    <button type="button" onclick="document.getElementById('restaurantProfilePanel').style.display='none'">Cancel</button>
+
+    <p id="restaurantProfileMessage"></p>
+    
+</div>
 </div>
 
    <div style="margin:15px 0;">
@@ -1250,8 +1350,15 @@
 >
     Sign Out
 </button>
-        <div id="customerProfile" style="margin-top:20px; padding:20px; border-radius:12px; background:#f5f5f5;">
+       <button
+    type="button"
+    onclick="toggleCustomerProfile()"
+    style="margin-top:10px; padding:10px 20px; border:none; border-radius:8px; background:#ff7a00; color:white; font-weight:bold; cursor:pointer;"
+>
+    ✏️ Edit Profile
+</button>
 
+<div id="customerProfile" style="display:none; margin-top:20px; padding:20px; border-radius:12px; background:#f5f5f5;">
     <h2>👤 My Profile</h2>
 
     <input
@@ -1469,7 +1576,6 @@
 
 <select id="paymentMethod" style="width:100%;padding:12px;margin:8px 0;">
     <option value="">Select payment method</option>
-    <option value="Cash on Delivery">Cash on Delivery</option>
     <option value="Paystack">Pay with Paystack</option>
 </select>
       <button onclick="placeOrder()">
@@ -1659,7 +1765,7 @@ window.showManagerMenu = function() {
 
     let cart = [];
 
-function addToCart(restaurant, food, price, restaurantId) {
+function addToCart(restaurant, food, price, restaurantId, menuItemId = "", selectedExtras = []) {
 
     const alreadyInCart = cart.some(item =>
         item.restaurant === restaurant &&
@@ -1685,12 +1791,13 @@ function addToCart(restaurant, food, price, restaurantId) {
     }
 
     cart.push({
-        restaurant: restaurant,
-        restaurantId: restaurantId,
-        food: food,
-        price: price
-    });
-
+    restaurant: restaurant,
+    restaurantId: restaurantId,
+    food: food,
+    price: price,
+    menuItemId: menuItemId,
+    selectedExtras: selectedExtras
+});
     updateCart();
 
     alert(food + " added to your cart! 🛒");
@@ -1876,41 +1983,59 @@ function closeCart() {
         block: "center"
     });
 }
- async function placeOrder() {
+async function placeOrder() {
     const name = document.getElementById("customerName").value.trim();
     const phone = document.getElementById("customerPhone").value.trim();
     const address = document.getElementById("customerAddress").value.trim();
     const paymentMethod = document.getElementById("paymentMethod").value;
-    
-    if (!paymentMethod) {
-    alert("Please select a payment method.");
-    return;
-}
+
+    if (paymentMethod !== "Paystack") {
+        alert("Please select a payment method.");
+        return;
+    }
 
     if (!name || !phone || !address) {
         alert("Please fill in your name, phone number and delivery address.");
         return;
     }
 
-    if (cart.length === 0) {
+    if (!cart.length) {
         alert("Your cart is empty.");
         return;
     }
-// Get customer's GPS delivery location (optional)
-let customerLocation = null;
 
-if (navigator.geolocation) {
-    try {
-        customerLocation = await new Promise((resolve) => {
+    const currentUser = window.feliAuth?.currentUser;
+
+    if (!currentUser) {
+        alert("Please log in before placing your order.");
+        return;
+    }
+
+    const orderRestaurantId = cart[0]?.restaurantId;
+
+    if (!orderRestaurantId) {
+        alert("Restaurant information is missing.");
+        return;
+    }
+
+    // Confirm every cart item belongs to the same restaurant.
+    if (cart.some(item => item.restaurantId !== orderRestaurantId)) {
+        alert("Please order from one restaurant at a time.");
+        return;
+    }
+
+    let customerLocation = null;
+
+    // Get customer's GPS location (optional).
+    if (navigator.geolocation) {
+        customerLocation = await new Promise(resolve => {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                },
-                (error) => {
-                    console.warn("GPS unavailable. Using delivery address.", error);
+                position => resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                }),
+                error => {
+                    console.warn("GPS unavailable:", error);
                     resolve(null);
                 },
                 {
@@ -1920,295 +2045,261 @@ if (navigator.geolocation) {
                 }
             );
         });
-    } catch (error) {
-        console.warn("GPS error:", error);
-        customerLocation = null;
     }
-}
-    const total = cart.reduce((sum, item) => {
-        return sum + Number(item.price || 0);
-    }, 0);
-const orderRestaurantId = cart[0]?.restaurantId;
 
-if (!orderRestaurantId) {
-    alert("Restaurant information is missing.");
-    return;
-}
-
-try {
-    // Use the same collection-read approach already used by the storefront.
-    // This also avoids a document-get permission mismatch in some Firestore rules.
-    const restaurantsSnapshot = await getDocs(collection(db, "restaurants"));
-    const restaurantDoc = restaurantsSnapshot.docs.find(
-        restaurant => restaurant.id === orderRestaurantId
+    // Calculate the amount displayed in the cart.
+    const total = cart.reduce(
+        (sum, item) => sum + Number(item.price || 0),
+        0
     );
 
-    if (!restaurantDoc) {
-        console.error("Restaurant ID was not found in Firestore:", orderRestaurantId);
-        alert("We could not find this restaurant. Please refresh the page and try again.");
+    if (!Number.isFinite(total) || total <= 0) {
+        alert("Invalid order total. Please refresh your cart.");
         return;
     }
 
-    const restaurantData = restaurantDoc.data();
-    const restaurantStatus = restaurantData.status || "Open";
-
-    if (restaurantStatus !== "Open") {
-        alert("This restaurant is not currently accepting orders.");
-        return;
-    }
-} catch (error) {
-    console.error("Could not verify restaurant approval status:", {
-        code: error.code,
-        message: error.message,
-        restaurantId: orderRestaurantId,
-        error: error
-    });
-    alert("We could not verify this restaurant (" + (error.code || error.message) + "). Please check your connection or Firebase rules and try again.");
-    return;
-}
-
-const currentUser = window.feliAuth.currentUser;
-
-if (!currentUser) {
-    alert("Please log in before placing your order.");
-    return;
-}
-
-const idToken = await currentUser.getIdToken();
-
-const numberResponse = await fetch(
-    "https://feli-food.onrender.com/api/orders/next-number",
-    {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-            restaurantId: orderRestaurantId
-        })
-    }
-);
-
-const numberData = await numberResponse.json();
-
-if (!numberResponse.ok || !numberData.status) {
-    throw new Error(numberData.message || "Could not generate order numbers");
-}
-
-const nextOrderNumber = numberData.orderNumber;
-const nextRestaurantOrderNumber = numberData.restaurantOrderNumber;
-const restaurantsSnapshot = await getDocs(
-    collection(db, "restaurants")
-);
-
-const restaurantOwnerUids = [
-    ...new Set(
-        cart
-            .map(item => item.restaurantId)
-            .filter(Boolean)
-            .map(restaurantId => {
-                const restaurantDoc =
-                    restaurantsSnapshot.docs.find(
-                        doc => doc.id === restaurantId
-                    );
-
-                return restaurantDoc?.data()?.ownerUid;
-            })
-            .filter(Boolean)
-    )
-];
-    const order = {
-    orderNumber: nextOrderNumber,
-    restaurantOrderNumber: nextRestaurantOrderNumber,
-    customerName: name,
-    phone: phone,
-    address: address,
-    deliveryLocation: customerLocation,
-    paymentMethod: paymentMethod,
-    items: [...cart],
-
-restaurantIds: [
-    ...new Set(
-        cart
-            .map(item => item.restaurantId)
-            .filter(Boolean)
-    )
-],
-restaurantOwnerUids: restaurantOwnerUids,
-restaurantId: cart[0]?.restaurantId || null,
-paymentStatus: "Unpaid",
-    total: total,
-    status: "Pending",
-    date: new Date().toLocaleString(),
-
-   customerId: window.feliAuth?.currentUser?.uid || null
-};
-// Feli Food collects Paystack payments into its own Paystack account.
-// Restaurant payouts are handled separately through the admin-approved payout process.
-// Do not require a restaurant Paystack subaccount for customer checkout.
-if (paymentMethod === "Paystack") {
-        const customerEmail =
-        phone.replace(/\D/g, "") + "@feli-food.com";
-
-    const paystackPop = new window.PaystackPop();
-
-    const paymentSuccessful = await new Promise((resolve) => {
-        paystackPop.checkout({
-            key: window.PAYSTACK_PUBLIC_KEY,
-            email: customerEmail,
-            amount: Math.round(total * 100),
-            currency: "GHS",
-            phone: phone,
-
-           onSuccess: async (transaction) => {
-  try {
-    const response = await fetch(
-    `https://feli-food.onrender.com/api/paystack/verify/${encodeURIComponent(transaction.reference)}`,
-    );
-
-    const result = await response.json();
-
-    const verified =
-      result.status === true &&
-      result.data?.status === "success";
-
-    if (!verified) {
-      console.error("Payment verification failed:", result);
-      resolve(false);
-      return;
-    }
-
-    const paidAmount = Number(result.data.amount);
-    const expectedAmount = Math.round(total * 100);
-    const paidCurrency = result.data.currency;
-
-    if (
-      paidAmount !== expectedAmount ||
-      paidCurrency !== "GHS"
-    ) {
-      console.error("Payment amount/currency mismatch:", {
-        paidAmount,
-        expectedAmount,
-        paidCurrency
-      });
-
-      resolve(false);
-      return;
-    }
-
-    console.log(
-      "Paystack payment verified successfully:",
-      result.data
-    );
-
-    order.paymentReference = transaction.reference;
-
-    resolve(true);
-
-  } catch (error) {
-    console.error("Payment verification error:", error);
-    resolve(false);
-  }
-},
-
-            onCancel: () => {
-                console.log("Paystack payment cancelled.");
-                resolve(false);
-            },
-
-            onError: (error) => {
-                console.error("Paystack payment error:", error);
-                resolve(false);
-            }
-        });
-    });
-
-    if (!paymentSuccessful) {
-        alert(
-            "❌ Payment was not completed.\n\n" +
-            "Your order was not placed."
+    try {
+        // Check restaurant availability.
+        const restaurantsSnapshot = await getDocs(
+            collection(db, "restaurants")
         );
-        return;
+
+        const restaurantDoc = restaurantsSnapshot.docs.find(
+            doc => doc.id === orderRestaurantId
+        );
+
+        if (!restaurantDoc) {
+            alert("Restaurant not found. Please refresh and try again.");
+            return;
+        }
+
+        const restaurantData = restaurantDoc.data();
+
+        if ((restaurantData.status || "Open") !== "Open") {
+            alert("This restaurant is not currently accepting orders.");
+            return;
+        }
+
+        // Get Firebase authentication token.
+        const idToken = await currentUser.getIdToken();
+
+        // Open Paystack payment.
+        const customerEmail =
+            phone.replace(/\D/g, "") + "@feli-food.com";
+
+        const paystackPop = new window.PaystackPop();
+
+        let paymentReference = "";
+
+        const paymentSuccessful = await new Promise(resolve => {
+            paystackPop.checkout({
+                key: window.PAYSTACK_PUBLIC_KEY,
+                email: customerEmail,
+                amount: Math.round(total * 100),
+                currency: "GHS",
+                phone: phone,
+
+                onSuccess: transaction => {
+                    if (!transaction?.reference) {
+                        resolve(false);
+                        return;
+                    }
+
+                    paymentReference = transaction.reference;
+                    resolve(true);
+                },
+
+                onCancel: () => {
+                    console.log("Payment cancelled.");
+                    resolve(false);
+                },
+
+                onError: error => {
+                    console.error("Paystack error:", error);
+                    resolve(false);
+                }
+            });
+        });
+
+        if (!paymentSuccessful || !paymentReference) {
+            alert(
+                "Payment was not completed.\n\n" +
+                "Your order was not placed."
+            );
+            return;
+        }
+
+        // Send the payment reference and cart to the secure backend.
+        // The backend verifies Paystack and recalculates all prices.
+        const orderResponse = await fetch(
+            "https://feli-food.onrender.com/api/orders/create-secure",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`
+                },
+                body: JSON.stringify({
+                    customerName: name,
+                    phone: phone,
+                    address: address,
+                    deliveryLocation: customerLocation,
+                    restaurantId: orderRestaurantId,
+                    paymentReference: paymentReference,
+
+                    items: cart.map(item => ({
+                        restaurantId: item.restaurantId,
+                        menuItemId: item.menuItemId,
+                        restaurant: item.restaurant,
+                        food: item.food,
+
+                        selectedExtras: (
+                            item.selectedExtras || []
+                        ).map(extra => ({
+                            name: extra.name
+                        }))
+                    }))
+                })
+            }
+        );
+
+        const result = await orderResponse.json();
+
+        if (
+            !orderResponse.ok ||
+            !result.success ||
+            !result.orderId
+        ) {
+            console.error("Secure order creation failed:", result);
+
+            alert(
+                result.message ||
+                "Payment was received, but your order could not be confirmed. Please contact Feli Food support before trying again."
+            );
+
+            return;
+        }
+
+        // Build the customer's local order record using backend results.
+        const order = {
+            firebaseId: result.orderId,
+
+            orderNumber: result.orderNumber,
+            restaurantOrderNumber: result.restaurantOrderNumber,
+
+            customerName: name,
+            phone: phone,
+            address: address,
+            deliveryLocation: customerLocation,
+
+            paymentMethod: "Paystack",
+            paymentStatus: "Paid",
+            paymentReference: paymentReference,
+
+            items: [...cart],
+
+            restaurantId: orderRestaurantId,
+            restaurantIds: [orderRestaurantId],
+            restaurantOwnerUids: restaurantData.ownerUid
+                ? [restaurantData.ownerUid]
+                : [],
+
+            total: result.total,
+            commissionRate: 0.05,
+            commissionAmount: result.commissionAmount,
+            restaurantAmount: result.restaurantAmount,
+
+            status: "Pending",
+            date: new Date().toLocaleString(),
+            customerId: currentUser.uid
+        };
+
+        // Create delivery verification code.
+        try {
+            const codeResponse = await fetch(
+                "https://feli-food.onrender.com/api/delivery/create-code",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({
+                        orderId: result.orderId
+                    })
+                }
+            );
+
+            const codeData = await codeResponse.json();
+
+            if (
+                !codeResponse.ok ||
+                !codeData.success ||
+                !codeData.code
+            ) {
+                throw new Error(
+                    codeData.message ||
+                    "Could not create delivery verification code."
+                );
+            }
+
+            order.deliveryCode = String(codeData.code);
+
+        } catch (codeError) {
+            console.error("Delivery code error:", codeError);
+
+            alert(
+                "Your order has been saved, but the delivery code could not be created. Please contact Feli Food support. Do not place the order again."
+            );
+
+            return;
+        }
+
+        // Save a local copy for the customer's order display.
+        const orders = JSON.parse(
+            localStorage.getItem("feliOrders") || "[]"
+        );
+
+        orders.push(order);
+
+        localStorage.setItem(
+            "feliLastOrderIndex",
+            orders.length - 1
+        );
+
+        localStorage.setItem(
+            "feliOrders",
+            JSON.stringify(orders)
+        );
+
+        localStorage.setItem(
+            "feliCurrentCustomerPhone",
+            phone
+        );
+
+        alert(
+            "Order placed successfully! 🎉\n\n" +
+            "Thank you, " + name + "!"
+        );
+
+        cart = [];
+        updateCart();
+
+        document.getElementById("checkoutForm").style.display = "none";
+        document.getElementById("customerName").value = "";
+        document.getElementById("customerPhone").value = "";
+        document.getElementById("customerAddress").value = "";
+
+    } catch (error) {
+        console.error("Checkout error:", error);
+
+        alert(
+            "Something went wrong while placing your order.\n\n" +
+            (error.message || "Please try again or contact Feli Food support.")
+        );
     }
-
-    order.paymentStatus = "Paid";
 }
-
-const commissionRate =
-  Number(localStorage.getItem("feliCommissionRate")) || 0.05;
-
-const commissionAmount =
-  Number((total * commissionRate).toFixed(2));
-
-const restaurantAmount =
-  Number((total - commissionAmount).toFixed(2));
-
-order.commissionRate = commissionRate;
-order.commissionAmount = commissionAmount;
-order.restaurantAmount = restaurantAmount;
-
-const saved = await window.saveOrderToFirebase(order);
-localStorage.setItem("feliCurrentCustomerPhone", phone);
-if (!saved) {
-    return;
-}
-
-// Create the delivery verification code on the secure backend.
-// The code is kept only in this customer's local order record, never in the public order document.
-try {
-    const customerUser = window.feliAuth.currentUser;
-    if (!customerUser) throw new Error("Please sign in again before placing this order.");
-    const customerToken = await customerUser.getIdToken();
-    const codeResponse = await fetch("https://feli-food.onrender.com/api/delivery/create-code", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${customerToken}`
-        },
-        body: JSON.stringify({ orderId: saved })
-    });
-    const codeData = await codeResponse.json();
-    if (!codeResponse.ok || !codeData.success || !codeData.code) {
-        throw new Error(codeData.message || "Could not create the delivery verification code.");
-    }
-    order.firebaseId = saved;
-    order.deliveryCode = String(codeData.code);
-} catch (codeError) {
-    console.error("Delivery code creation error:", codeError);
-    alert("Your order was saved, but the delivery code could not be created. Please contact Feli Food support before delivery. Do not place the order again.");
-    return;
-}
-
-    const orders = JSON.parse(
-        localStorage.getItem("feliOrders") || "[]"
-    );
-
-    orders.push(order);
-
-localStorage.setItem("feliLastOrderIndex", orders.length - 1);
-
-    localStorage.setItem(
-        "feliOrders",
-        JSON.stringify(orders)
-    );
-
-    alert(
-        "Order placed successfully! 🎉\n\n" +
-        "Thank you, " + name + "!"
-    );
-
-    cart = [];
-
-    updateCart();
-
-    document.getElementById("checkoutForm").style.display = "none";
-
-    document.getElementById("customerName").value = "";
-    document.getElementById("customerPhone").value = "";
-    document.getElementById("customerAddress").value = "";
-}
-async function showMyOrders() {
+ async function showMyOrders() {
     const currentUser = window.feliAuth?.currentUser;
     if (!currentUser) {
         alert("Please sign in to view your orders.");
@@ -2426,6 +2517,7 @@ window.recoverFeliDeliveryCode = async function(orderId) {
         const order = savedOrders.find(item => item.firebaseId === orderId);
         if (order) {
             order.deliveryCode = String(result.code);
+            order.deliveryCodeRecovered = true;
             localStorage.setItem("feliOrders", JSON.stringify(savedOrders));
         }
         alert("Your new delivery code is: " + result.code + "\n\nGive it to your rider only when your food arrives.");
@@ -2476,11 +2568,8 @@ const orders = allOrders.filter(order =>
     <button onclick="updateOrderStatus('${order.firebaseId}', 'Accepted')">Accept</button>
 <button onclick="updateOrderStatus('${order.firebaseId}', 'Preparing')">Preparing</button>
 <button onclick="updateOrderStatus('${order.firebaseId}', 'Ready')">Ready</button>
-<button onclick="updateOrderStatus('${order.firebaseId}', 'Delivered')">Delivered</button>
-    ${order.paymentStatus === "Paid"
-    ? `<button disabled>✅ Paid</button>`
-    : `<button onclick="updatePaymentStatus(${index})">💰 Mark as Paid</button>`}
-    
+
+   <span>💳 Paystack payment</span>
 </div>    
             </div>
         `;
@@ -3620,7 +3709,7 @@ window.openRestaurantReview = function(restaurantName) {
     /* =========================
        LOAD SAVED RESTAURANTS
     ========================= */
-function showFoodOptions(restaurant, foodName, foodPrice, restaurantId, foodImage = "", foodExtras = "") {
+function showFoodOptions(restaurant, foodName, foodPrice, restaurantId, foodImage = "", foodExtras = "", menuItemId = "") {
     let quantity = 1;
     let extraTotal = 0;
 
@@ -3663,6 +3752,7 @@ function showFoodOptions(restaurant, foodName, foodPrice, restaurantId, foodImag
                             <input
                                 type="checkbox"
                                 class="food-extra"
+                                 data-name="${name}"
                                 data-price="${price}"
                                 style="width:20px;height:20px;margin-right:12px;"
                             >
@@ -3880,22 +3970,27 @@ function showFoodOptions(restaurant, foodName, foodPrice, restaurantId, foodImag
         let selectedExtras = [];
 
         modal.querySelectorAll(".food-extra:checked").forEach(box => {
-            const extraName =
-                box.parentElement.textContent.trim();
+           const extraName = box.dataset.name || "";
+const extraPrice = Number(box.dataset.price) || 0;
 
-            selectedExtras.push(extraName);
+selectedExtras.push({
+    name: extraName,
+    price: extraPrice
+});
         });
 
         const total =
             (Number(foodPrice) + extraTotal) * quantity;
 
         for (let i = 0; i < quantity; i++) {
-            addToCart(
-                restaurant,
-                foodName,
-                Number(foodPrice) + extraTotal,
-                restaurantId
-            );
+    addToCart(
+    restaurant,
+    foodName,
+    Number(foodPrice) + extraTotal,
+    restaurantId,
+    menuItemId,
+    selectedExtras
+);
         }
 
         modal.remove();
@@ -3952,7 +4047,7 @@ async function showMenu(restaurant, restaurantId) {
           GHS ${Number(food.price).toFixed(2)}
         </div>
                <button
-  onclick='showFoodOptions(${JSON.stringify(restaurant)}, ${JSON.stringify(food.name)}, ${Number(food.price)}, ${JSON.stringify(restaurantId)}, ${JSON.stringify(food.imageUrl || "")}, ${JSON.stringify(food.extras || "")})'
+  onclick='showFoodOptions(${JSON.stringify(restaurant)}, ${JSON.stringify(food.name)}, ${Number(food.price)}, ${JSON.stringify(restaurantId)}, ${JSON.stringify(food.imageUrl || "")}, ${JSON.stringify(food.extras || "")}, ${JSON.stringify(food.id)})'
   style="
     width:100%;
     margin-top:10px;
@@ -4126,9 +4221,11 @@ window.registerRider = async function() {
   const email = document.getElementById("riderEmail").value.trim();
   const phone = document.getElementById("riderPhone").value.trim();
   const location = document.getElementById("riderLocation").value.trim();
+  const vehicleType = document.getElementById("riderVehicleType").value;
+const vehicleRegistrationNumber = document.getElementById("riderVehicleRegistrationNumber").value.trim();
   const password = document.getElementById("riderPassword").value;
 
-  if (!name || !email || !phone || !location || !password) {
+  if (!name || !email || !phone || !location || !vehicleType || !vehicleRegistrationNumber || !password) {
     alert("Please fill in all rider registration fields.");
     return;
   }
@@ -4160,13 +4257,15 @@ window.registerRider = async function() {
       throw new Error(data.message || "Could not send OTP.");
     }
 
-    window.pendingRiderSignup = {
-      name,
-      email,
-      phone,
-      location,
-      password
-    };
+   window.pendingRiderSignup = {
+  name,
+  email,
+  phone,
+  location,
+  vehicleType,
+  vehicleRegistrationNumber,
+  password
+};
 
     document.getElementById("riderOtpEmail").textContent = email;
     document.getElementById("riderOtpInput").value = "";
@@ -4231,6 +4330,8 @@ window.verifyRiderEmailOTP = async function() {
       email: pending.email,
       phone: pending.phone,
       location: pending.location,
+      vehicleType: pending.vehicleType,
+     vehicleRegistrationNumber: pending.vehicleRegistrationNumber,
       uid: user.uid,
       role: "rider",
       status: "Pending",
@@ -4248,6 +4349,8 @@ window.verifyRiderEmailOTP = async function() {
         email: pending.email,
         phone: pending.phone,
         location: pending.location,
+        vehicleType: pending.vehicleType,
+        vehicleRegistrationNumber: pending.vehicleRegistrationNumber,
         status: "Pending",
         availability: false
       })
@@ -5147,7 +5250,7 @@ window.loginCustomer = async function() {
 
     try {
         await signInWithEmailAndPassword(auth, email, password);
-
+     await window.loadCustomerProfile();
         document.getElementById("authMessage").textContent =
             "✅ Signed in successfully!";
     } catch (error) {
@@ -5236,18 +5339,65 @@ try {
     document.getElementById("profileMessage").textContent =
         "✅ Profile saved successfully!";
 };
-window.loadCustomerProfile = function() {
-    const savedProfile = localStorage.getItem("feliCustomerProfile");
+window.loadCustomerProfile = async function() {
+    const user = auth.currentUser;
 
-    if (!savedProfile) return;
+    if (!user) return;
 
-    const profile = JSON.parse(savedProfile);
+    try {
+        const profileRef = doc(db, "customers", user.uid);
+        const profileSnap = await getDoc(profileRef);
 
-    document.getElementById("profileName").value = profile.name || "";
-    document.getElementById("profilePhone").value = profile.phone || "";
-    document.getElementById("profileAddress").value = profile.address || "";
+        if (profileSnap.exists()) {
+            const profile = profileSnap.data();
+
+            document.getElementById("profileName").value = profile.name || "";
+            document.getElementById("profilePhone").value = profile.phone || "";
+            document.getElementById("profileAddress").value = profile.address || "";
+
+            localStorage.setItem("feliCustomerProfile", JSON.stringify({
+                uid: user.uid,
+                name: profile.name || "",
+                phone: profile.phone || "",
+                address: profile.address || ""
+            }));
+
+            localStorage.setItem("feliCurrentCustomerPhone", profile.phone || "");
+        } else {
+            document.getElementById("profileName").value = "";
+            document.getElementById("profilePhone").value = "";
+            document.getElementById("profileAddress").value = "";
+        }
+
+    } catch (error) {
+        console.error("Customer profile loading error:", error);
+
+        const savedProfile = localStorage.getItem("feliCustomerProfile");
+
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+
+            if (profile.uid === user.uid) {
+                document.getElementById("profileName").value = profile.name || "";
+                document.getElementById("profilePhone").value = profile.phone || "";
+                document.getElementById("profileAddress").value = profile.address || "";
+            }
+        }
+    }
 };
 
+window.toggleCustomerProfile = async function () {
+    const panel = document.getElementById("customerProfile");
+
+    if (!panel) return;
+
+    if (panel.style.display === "none") {
+        panel.style.display = "block";
+        await window.loadCustomerProfile();
+    } else {
+        panel.style.display = "none";
+    }
+};
 window.loadCustomerProfile();
   window.saveOrderToFirebase = async function(order) {
     try {
@@ -5595,19 +5745,32 @@ window.loadOrdersFromFirebase = async function () {
             );
 
             const localCodeByOrderId = new Map(
-                previousLocalOrders
-                    .filter(order => order.firebaseId && order.deliveryCode)
-                    .map(order => [order.firebaseId, order.deliveryCode])
-            );
-
+    previousLocalOrders
+        .filter(order => order.firebaseId && order.deliveryCode)
+        .map(order => [
+            order.firebaseId,
+            {
+                code: order.deliveryCode,
+                recovered: order.deliveryCodeRecovered === true
+            }
+        ])
+);
             const firebaseOrders = snapshot.docs.map((docSnap, index) => ({
                 ...docSnap.data(),
                 orderNumber: docSnap.data().orderNumber || (index + 1),
                 firebaseId: docSnap.id,
-                ...(!docSnap.data().riderArrivedAt &&
-              localCodeByOrderId.has(docSnap.id)
-             ? { deliveryCode: localCodeByOrderId.get(docSnap.id) }
-            : {})
+               ...(
+    localCodeByOrderId.has(docSnap.id) &&
+    (
+        !docSnap.data().riderArrivedAt ||
+        localCodeByOrderId.get(docSnap.id).recovered
+    )
+        ? {
+            deliveryCode: localCodeByOrderId.get(docSnap.id).code,
+            deliveryCodeRecovered: localCodeByOrderId.get(docSnap.id).recovered
+        }
+        : {}
+)
             }));
 
             localStorage.setItem(
@@ -5716,6 +5879,154 @@ window.toggleRestaurantStatus = async function () {
     } catch (error) {
         console.error("Status update error:", error);
         alert("Could not change restaurant status.");
+    }
+};
+// ==========================================
+// RESTAURANT PROFILE EDITOR
+// ==========================================
+
+window.showRestaurantProfile = async function() {
+    const panel = document.getElementById("restaurantProfilePanel");
+    const message = document.getElementById("restaurantProfileMessage");
+    const restaurant = window.currentRestaurant;
+    const user = window.restaurantAuth?.currentUser;
+
+    if (!user || !restaurant?.id || restaurant.ownerUid !== user.uid) {
+        alert("Please sign in with your restaurant owner account.");
+        return;
+    }
+
+    try {
+        const restaurantRef = doc(db, "restaurants", restaurant.id);
+        const snapshot = await getDoc(restaurantRef);
+
+        if (!snapshot.exists()) {
+            alert("Restaurant could not be found.");
+            return;
+        }
+
+        const data = snapshot.data();
+
+        document.getElementById("editRestaurantPhone").value = data.phone || "";
+        document.getElementById("editRestaurantLocation").value = data.location || "";
+        document.getElementById("editRestaurantDescription").value = data.description || "";
+        document.getElementById("editRestaurantLogo").value = "";
+
+        if (message) message.textContent = "";
+
+        panel.style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth" });
+
+    } catch (error) {
+        console.error("Restaurant profile loading error:", error);
+        alert("Could not load restaurant profile: " + error.message);
+    }
+};
+
+window.saveRestaurantProfile = async function() {
+    const message = document.getElementById("restaurantProfileMessage");
+    const restaurant = window.currentRestaurant;
+    const user = window.restaurantAuth?.currentUser;
+
+    if (!user || !restaurant?.id || restaurant.ownerUid !== user.uid) {
+        message.textContent = "Please sign in as the restaurant owner.";
+        return;
+    }
+
+    const phone = document.getElementById("editRestaurantPhone").value.trim();
+    const location = document.getElementById("editRestaurantLocation").value.trim();
+    const description = document.getElementById("editRestaurantDescription").value.trim();
+    const imageFile = document.getElementById("editRestaurantLogo").files[0];
+
+    if (phone.length > 30 || location.length > 200 || description.length > 1000) {
+        message.textContent = "Please shorten one or more fields.";
+        return;
+    }
+
+    if (imageFile && !imageFile.type.startsWith("image/")) {
+        message.textContent = "Please select a valid image.";
+        return;
+    }
+
+    if (imageFile && imageFile.size > 5 * 1024 * 1024) {
+        message.textContent = "Image must be 5MB or smaller.";
+        return;
+    }
+
+    try {
+        message.textContent = "Saving profile...";
+
+        const restaurantRef = doc(db, "restaurants", restaurant.id);
+        const snapshot = await getDoc(restaurantRef);
+
+        if (!snapshot.exists()) {
+            throw new Error("Restaurant could not be found.");
+        }
+
+        const currentData = snapshot.data();
+
+        if (
+            currentData.ownerUid !== user.uid ||
+            currentData.approved !== true
+        ) {
+            throw new Error("This restaurant is not authorised to edit its profile.");
+        }
+
+        let imageUrl = currentData.image || "";
+
+               if (imageFile) {
+            const formData = new FormData();
+            formData.append("file", imageFile);
+            formData.append("upload_preset", "feli_food_upload");
+
+            const response = await fetch(
+                "https://api.cloudinary.com/v1_1/oh8a4gxs/image/upload",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.secure_url) {
+                throw new Error(
+                    result.error?.message || "Restaurant logo upload failed."
+                );
+            }
+
+            imageUrl = result.secure_url;
+        }
+
+        await updateDoc(restaurantRef, {
+            phone: phone,
+            location: location,
+            description: description,
+            image: imageUrl
+        });
+
+        window.currentRestaurant = {
+            ...window.currentRestaurant,
+            phone,
+            location,
+            description,
+            image: imageUrl
+        };
+
+        localStorage.setItem(
+            "feliCurrentRestaurant",
+            JSON.stringify(window.currentRestaurant)
+        );
+
+        message.textContent = "Profile saved successfully!";
+
+        if (window.loadRestaurants) {
+            await window.loadRestaurants();
+        }
+
+    } catch (error) {
+        console.error("Restaurant profile save error:", error);
+        message.textContent = "Could not save profile: " + error.message;
     }
 };
 window.loginRider = async function() {
@@ -5869,6 +6180,104 @@ if (newAvailability) {
     console.error("Rider availability error:", error);
     alert("Could not update availability: " + error.message);
   }
+};
+// ==========================================
+// FELI FOOD RIDER EDIT PROFILE
+// ==========================================
+
+window.showRiderProfile = async function() {
+    const user = riderAuth.currentUser;
+    const panel = document.getElementById("riderProfilePanel");
+
+    if (!user) {
+        alert("Please log in as a rider first.");
+        return;
+    }
+
+    try {
+        const riderRef = doc(riderDb, "riders", user.uid);
+        const riderSnap = await getDoc(riderRef);
+
+        if (!riderSnap.exists()) {
+            alert("Rider profile not found.");
+            return;
+        }
+
+        const rider = riderSnap.data();
+
+        document.getElementById("editRiderName").value = rider.name || "";
+        document.getElementById("editRiderPhone").value = rider.phone || "";
+        document.getElementById("editRiderLocation").value = rider.location || "";
+        document.getElementById("editRiderVehicleType").value = rider.vehicleType || "";
+        document.getElementById("editRiderVehicleRegistrationNumber").value =
+            rider.vehicleRegistrationNumber || "";
+
+        panel.style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth" });
+
+    } catch (error) {
+        console.error("Rider profile loading error:", error);
+        alert("Could not load rider profile: " + error.message);
+    }
+};
+
+window.saveRiderProfile = async function() {
+    const user = riderAuth.currentUser;
+
+    if (!user) {
+        alert("Please log in as a rider first.");
+        return;
+    }
+
+    const name = document.getElementById("editRiderName").value.trim();
+    const phone = document.getElementById("editRiderPhone").value.trim();
+    const location = document.getElementById("editRiderLocation").value.trim();
+    const vehicleType = document.getElementById("editRiderVehicleType").value;
+    const vehicleRegistrationNumber =
+        document.getElementById("editRiderVehicleRegistrationNumber").value.trim();
+
+    if (!name || !phone || !location || !vehicleType || !vehicleRegistrationNumber) {
+        alert("Please complete all profile fields.");
+        return;
+    }
+
+    if (
+        name.length > 100 ||
+        phone.length > 30 ||
+        location.length > 200 ||
+        vehicleType.length > 50 ||
+        vehicleRegistrationNumber.length > 30
+    ) {
+        alert("One or more fields are too long.");
+        return;
+    }
+
+    try {
+        const riderRef = doc(riderDb, "riders", user.uid);
+
+        await updateDoc(riderRef, {
+            name,
+            phone,
+            location,
+            vehicleType,
+            vehicleRegistrationNumber,
+            updatedAt: new Date().toISOString()
+        });
+
+        document.getElementById("riderDisplayName").textContent = name;
+
+        alert("Rider profile updated successfully! 🎉");
+
+        window.hideRiderProfile();
+
+    } catch (error) {
+        console.error("Rider profile update error:", error);
+        alert("Could not update rider profile: " + error.message);
+    }
+};
+
+window.hideRiderProfile = function() {
+    document.getElementById("riderProfilePanel").style.display = "none";
 };
 let riderOrdersListener = null;
 

@@ -55,6 +55,33 @@ async function requireFeliAdmin(req, res, next) {
     });
   }
 }
+
+// VERIFY CUSTOMER LOGIN
+async function requireCustomer(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const idToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : "";
+
+  if (!idToken) {
+    return res.status(401).json({
+      success: false,
+      message: "Please log in before placing an order."
+    });
+  }
+
+  try {
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    req.customer = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Your login session has expired. Please sign in again."
+    });
+  }
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 const app = express();
 const otpStore = new Map();
@@ -271,62 +298,331 @@ app.get("/api/paystack/verify/:reference", async (req, res) => {
   }
 });
 
+// OLD ORDER NUMBER ENDPOINT — DISABLED
 app.post("/api/orders/next-number", async (req, res) => {
+  return res.status(410).json({
+    status: false,
+    message: "This endpoint is no longer supported. Please use secure checkout."
+  });
+});
+// ---------- SECURE ORDER CREATION ----------
+app.post("/api/orders/create-secure", requireCustomer, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || "";
-    const idToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
+    const {
+      customerName,
+      phone,
+      address,
+      deliveryLocation,
+      restaurantId,
+      items,
+      paymentReference
+    } = req.body || {};
 
-    if (!idToken) {
-      return res.status(401).json({ status: false, message: "Login required" });
+    if (
+      !customerName ||
+      !phone ||
+      !address ||
+      !restaurantId ||
+      !Array.isArray(items) ||
+      items.length === 0 ||
+      !paymentReference
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing order information."
+      });
     }
 
-    await adminAuth.verifyIdToken(idToken);
-    const restaurantId = req.body.restaurantId;
-
-    if (!restaurantId || typeof restaurantId !== "string") {
-      return res.status(400).json({ status: false, message: "Restaurant ID is required" });
+    if (items.length > 50 || typeof paymentReference !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order information."
+      });
     }
 
-    const globalRef = adminDb.collection("orderCounters").doc("global");
-    const restaurantRef = adminDb.collection("orderCounters").doc(`restaurant_${restaurantId}`);
+    // Confirm the restaurant using trusted Firebase data.
+    const restaurantRef = adminDb.collection("restaurants").doc(restaurantId);
+    const restaurantSnap = await restaurantRef.get();
 
-    const numbers = await adminDb.runTransaction(async (transaction) => {
-      const globalSnap = await transaction.get(globalRef);
-      const restaurantSnap = await transaction.get(restaurantRef);
-      let globalMax = globalSnap.exists ? Number(globalSnap.data().lastOrderNumber) || 0 : 0;
-      let restaurantMax = restaurantSnap.exists ? Number(restaurantSnap.data().lastOrderNumber) || 0 : 0;
+    if (!restaurantSnap.exists) {
+      return res.status(404).json({
+        success: false,
+        message: "Restaurant not found."
+      });
+    }
 
-      if (!globalSnap.exists || !restaurantSnap.exists) {
-        const oldOrders = await transaction.get(adminDb.collection("orders"));
-        let oldRestaurantOrders = 0;
+    const restaurant = restaurantSnap.data();
 
-        oldOrders.forEach((orderDoc) => {
-          const data = orderDoc.data();
-          if (!globalSnap.exists) {
-            const number = Number(data.orderNumber);
-            if (Number.isFinite(number)) globalMax = Math.max(globalMax, number);
-          }
-          if (!restaurantSnap.exists && data.restaurantId === restaurantId) {
-            const number = Number(data.restaurantOrderNumber);
-            if (Number.isFinite(number)) restaurantMax = Math.max(restaurantMax, number);
-            else oldRestaurantOrders++;
-          }
+    if ((restaurant.status || "Open") !== "Open") {
+      return res.status(400).json({
+        success: false,
+        message: "This restaurant is not accepting orders."
+      });
+    }
+
+    // Recalculate every item using the restaurant's real menu prices.
+    let verifiedItems = [];
+    let total = 0;
+
+    for (const item of items) {
+      if (!item.menuItemId || item.restaurantId !== restaurantId) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid menu item."
         });
-
-        restaurantMax = Math.max(restaurantMax, oldRestaurantOrders);
       }
 
-      const nextOrderNumber = globalMax + 1;
-      const nextRestaurantOrderNumber = restaurantMax + 1;
-      transaction.set(globalRef, { lastOrderNumber: nextOrderNumber }, { merge: true });
-      transaction.set(restaurantRef, { lastOrderNumber: nextRestaurantOrderNumber }, { merge: true });
-      return { orderNumber: nextOrderNumber, restaurantOrderNumber: nextRestaurantOrderNumber };
+      const menuRef = restaurantRef
+        .collection("menu")
+        .doc(item.menuItemId);
+
+      const menuSnap = await menuRef.get();
+
+      if (!menuSnap.exists) {
+        return res.status(400).json({
+          success: false,
+          message: "A selected food item is no longer available."
+        });
+      }
+
+      const menu = menuSnap.data();
+      const basePrice = Number(menu.price);
+
+      if (!Number.isFinite(basePrice) || basePrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid menu price."
+        });
+      }
+
+      // Read extras from the trusted restaurant menu.
+      const trustedExtras = new Map();
+
+      if (typeof menu.extras === "string" && menu.extras.trim()) {
+        menu.extras.split(",").forEach(extra => {
+          const parts = extra.split("-");
+          const extraName = parts[0]?.trim();
+          const extraPrice = Number(parts[1]?.trim());
+
+          if (extraName && Number.isFinite(extraPrice) && extraPrice >= 0) {
+            trustedExtras.set(extraName, extraPrice);
+          }
+        });
+      }
+
+      const selectedExtras = [];
+      const requestedExtras = Array.isArray(item.selectedExtras)
+        ? item.selectedExtras
+        : [];
+
+      for (const selected of requestedExtras) {
+        const extraName = String(selected.name || "").trim();
+
+        if (!trustedExtras.has(extraName)) {
+          return res.status(400).json({
+            success: false,
+            message: "An extra option is invalid. Please refresh your cart."
+          });
+        }
+
+        selectedExtras.push({
+          name: extraName,
+          price: trustedExtras.get(extraName)
+        });
+      }
+
+      const itemPrice = basePrice +
+        selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
+
+      total += itemPrice;
+
+      verifiedItems.push({
+        restaurant: restaurant.name || item.restaurant || "",
+        restaurantId,
+        food: menu.name || item.food || "",
+        menuItemId: item.menuItemId,
+        price: Number(itemPrice.toFixed(2)),
+        selectedExtras
+      });
+    }
+
+    total = Number(total.toFixed(2));
+    const expectedAmount = Math.round(total * 100);
+
+    if (expectedAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order total."
+      });
+    }
+
+    // Verify payment directly with Paystack using the server secret.
+    const paymentResponse = await axios.get(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(paymentReference)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
+
+    const payment = paymentResponse.data?.data;
+
+    
+const expectedCustomerEmail =
+  `${String(phone).replace(/\D/g, "")}@feli-food.com`.toLowerCase();
+
+const paidCustomerEmail =
+  String(payment.customer?.email || "").trim().toLowerCase();
+
+if (
+  paymentResponse.data?.status !== true ||
+  payment?.status !== "success" ||
+  Number(payment.amount) !== expectedAmount ||
+  payment.currency !== "GHS" ||
+  paidCustomerEmail !== expectedCustomerEmail
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Payment could not be verified for this order."
+  });
+}
+
+
+    // Calculate Feli Food's confirmed 5% commission on the server.
+    const commissionRate = 0.05;
+    const commissionAmount = Number((total * commissionRate).toFixed(2));
+    const restaurantAmount = Number((total - commissionAmount).toFixed(2));
+
+    // A hashed payment reference prevents duplicate order creation.
+    const referenceId = crypto
+      .createHash("sha256")
+      .update(paymentReference)
+      .digest("hex");
+
+    const paymentRef = adminDb
+      .collection("paymentReferences")
+      .doc(referenceId);
+
+    const globalRef = adminDb.collection("orderCounters").doc("global");
+    const restaurantCounterRef = adminDb
+      .collection("orderCounters")
+      .doc(`restaurant_${restaurantId}`);
+
+    const orderRef = adminDb.collection("orders").doc();
+
+    const numbers = await adminDb.runTransaction(async transaction => {
+      const paymentSnap = await transaction.get(paymentRef);
+
+      if (paymentSnap.exists) {
+        throw new Error("PAYMENT_ALREADY_USED");
+      }
+
+      const globalSnap = await transaction.get(globalRef);
+      const restaurantCounterSnap = await transaction.get(restaurantCounterRef);
+
+            if (!globalSnap.exists || !restaurantCounterSnap.exists) {
+        throw new Error("ORDER_COUNTER_MISSING");
+      }
+
+      const globalMax = Number(globalSnap.data().lastOrderNumber);
+      const restaurantMax = Number(restaurantCounterSnap.data().lastOrderNumber);
+
+      if (
+  !Number.isSafeInteger(globalMax) ||
+  globalMax < 0 ||
+  globalMax >= Number.MAX_SAFE_INTEGER ||
+  !Number.isSafeInteger(restaurantMax) ||
+  restaurantMax < 0 ||
+  restaurantMax >= Number.MAX_SAFE_INTEGER
+) {
+  throw new Error("ORDER_COUNTER_INVALID");
+}
+      const orderNumber = globalMax + 1;
+      const restaurantOrderNumber = restaurantMax + 1;
+
+      const order = {
+        orderNumber,
+        restaurantOrderNumber,
+        customerName: String(customerName).trim(),
+        phone: String(phone).trim(),
+        address: String(address).trim(),
+        deliveryLocation: deliveryLocation || null,
+        paymentMethod: "Paystack",
+        paymentStatus: "Paid",
+        paymentReference,
+        total,
+        commissionRate,
+        commissionAmount,
+        restaurantAmount,
+        items: verifiedItems,
+        restaurantId,
+        restaurantIds: [restaurantId],
+        restaurantOwnerUids: restaurant.ownerUid
+          ? [restaurant.ownerUid]
+          : [],
+        customerId: req.customer.uid,
+        status: "Pending",
+        date: new Date().toLocaleString(),
+        createdAt: FieldValue.serverTimestamp()
+      };
+
+      transaction.set(orderRef, order);
+
+      transaction.set(globalRef, {
+        lastOrderNumber: orderNumber
+      }, { merge: true });
+
+      transaction.set(restaurantCounterRef, {
+        lastOrderNumber: restaurantOrderNumber
+      }, { merge: true });
+
+      transaction.create(paymentRef, {
+        paymentReference,
+        orderId: orderRef.id,
+        customerId: req.customer.uid,
+        createdAt: FieldValue.serverTimestamp()
+      });
+
+      return {
+        orderNumber,
+        restaurantOrderNumber
+      };
     });
 
-    return res.json({ status: true, ...numbers });
+    return res.json({
+      success: true,
+      orderId: orderRef.id,
+      ...numbers,
+      total,
+      commissionAmount,
+      restaurantAmount
+    });
+
   } catch (error) {
-    console.error("Order number error:", error);
-    return res.status(500).json({ status: false, message: "Could not generate order numbers" });
+    if (error.message === "PAYMENT_ALREADY_USED") {
+      return res.status(409).json({
+        success: false,
+        message: "This payment has already been used for an order."
+      });
+    }
+    if (
+      error.message === "ORDER_COUNTER_MISSING" ||
+      error.message === "ORDER_COUNTER_INVALID"
+    ) {
+      console.error("Order counter configuration error:", error.message);
+
+      return res.status(503).json({
+        success: false,
+        message: "Order numbering is temporarily unavailable. Please contact Feli Food support."
+      });
+    }
+    console.error("Secure order creation error:", error.response?.data || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not create your order. Please contact Feli Food support."
+    });
   }
 });
 
@@ -458,37 +754,44 @@ app.post("/api/delivery/recover-code", async (req, res) => {
       "Your rider has not arrived yet. Your delivery code will be available when the rider arrives."
   );
 }
-      if (!codeSnap.exists) {
-        throw new Error(
-          "No delivery code exists for this order. Contact Feli Food support."
-        );
-      }
+      if (codeSnap.exists && codeSnap.data().used) {
+  throw new Error("This delivery code has already been used.");
+}
 
-      const existing = codeSnap.data();
-      const lastRecoveryMillis = existing.lastRecoveryAt?.toDate
-        ? existing.lastRecoveryAt.toDate().getTime()
-        : 0;
+const existing = codeSnap.exists ? codeSnap.data() : {};
 
-      if (
-        lastRecoveryMillis &&
-        Date.now() - lastRecoveryMillis < 30000
-      ) {
-        throw new Error(
-          "Please wait 30 seconds before recovering the code again."
-        );
-      }
+if (
+  existing.customerUid &&
+  existing.customerUid !== decoded.uid
+) {
+  throw new Error("Delivery code ownership mismatch.");
+}
 
-      transaction.set(codeRef, {
-        orderId,
-        customerUid: decoded.uid,
-        codeHash,
-        salt,
-        attempts: 0,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        lastRecoveryAt: FieldValue.serverTimestamp(),
-        used: false
-      });
+const lastRecoveryMillis = existing.lastRecoveryAt?.toDate
+  ? existing.lastRecoveryAt.toDate().getTime()
+  : 0;
+
+if (
+  lastRecoveryMillis &&
+  Date.now() - lastRecoveryMillis < 30000
+) {
+  throw new Error(
+    "Please wait 30 seconds before recovering the code again."
+  );
+}
+
+transaction.set(codeRef, {
+  orderId,
+  customerUid: decoded.uid,
+  codeHash,
+  salt,
+  attempts: 0,
+  createdAt: new Date(),
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  lastRecoveryAt: FieldValue.serverTimestamp(),
+  arrivedAt: order.riderArrivedAt,
+  used: false
+});
     });
 
     return res.json({
@@ -553,6 +856,10 @@ app.post("/api/delivery/verify-code", async (req, res) => {
       if (!codeSnap.exists) throw new Error("Delivery code not found. Ask the customer to contact Feli Food support.");
 
       const saved = codeSnap.data();
+      // A delivery can only be completed after the assigned rider records arrival.
+if (!order.riderArrivedAt || !saved.arrivedAt) {
+  throw new Error("Rider arrival must be recorded before completing delivery.");
+}
       if (saved.used) throw new Error("This delivery code has already been used.");
       const expiryMillis = saved.expiresAt?.toDate
         ? saved.expiresAt.toDate().getTime()
@@ -591,7 +898,7 @@ app.post("/api/delivery/verify-code", async (req, res) => {
   } catch (error) {
     console.error("Delivery code verification error:", error);
     const message = error.message || "Could not verify delivery.";
-    const clientError = /not found|not assigned|not approved|not awaiting|incorrect|expired|already|too many|contact/i.test(message);
+   const clientError = /not found|not assigned|not approved|not awaiting|arrival|incorrect|expired|already|too many|contact/i.test(message);
     return res.status(clientError ? 400 : 500).json({ success: false, message });
   }
 });
@@ -659,25 +966,29 @@ app.post("/api/delivery/arrived", async (req, res) => {
         throw new Error("This order has already been delivered.");
       }
 
-      if (!codeSnap.exists || codeSnap.data().used) {
-        throw new Error("Delivery code is unavailable.");
-      }
+      
+if (codeSnap.exists && codeSnap.data().used) {
+  throw new Error("This delivery code has already been used.");
+}
 
-      const code = String(crypto.randomInt(100000, 1000000));
-      const salt = crypto.randomBytes(16).toString("hex");
-      const codeHash = crypto.createHash("sha256")
-        .update(salt + code)
-        .digest("hex");
+const code = String(crypto.randomInt(100000, 1000000));
+const salt = crypto.randomBytes(16).toString("hex");
+const codeHash = crypto.createHash("sha256")
+  .update(salt + code)
+  .digest("hex");
 
-      transaction.update(codeRef, {
-        codeHash,
-        salt,
-        attempts: 0,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        used: false,
-        arrivedAt: FieldValue.serverTimestamp()
-      });
+transaction.set(codeRef, {
+  orderId,
+  customerUid: order.customerId,
+  codeHash,
+  salt,
+  attempts: 0,
+  createdAt: new Date(),
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  used: false,
+  arrivedAt: FieldValue.serverTimestamp()
+});
+
 
       transaction.update(orderRef, {
         riderArrivedAt: FieldValue.serverTimestamp()
