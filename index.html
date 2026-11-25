@@ -2577,23 +2577,7 @@ const orders = allOrders.filter(order =>
 
    
 }
-function saveCommissionRate() {
-    const input = document.getElementById("commissionRateInput");
 
-    const rate = Number(input.value);
-
-    if (isNaN(rate) || rate < 0 || rate > 100) {
-        alert("Please enter a commission rate between 0% and 100%.");
-        return;
-    }
-
-    localStorage.setItem(
-        "feliCommissionRate",
-        String(rate / 100)
-    );
-
-    alert("Commission rate saved: " + rate + "%");
-}
 function showCommission() {
     const commissionSection = document.getElementById("commissionSection");
     if (!commissionSection) return;
@@ -2646,15 +2630,6 @@ function showCommission() {
         totalCommission += commission;
         totalRestaurantEarnings += restaurantAmount;
     });
-
-    const savedRate = Number(
-        localStorage.getItem("feliCommissionRate") || 0.05
-    );
-    const rateInput = document.getElementById("commissionRateInput");
-    if (rateInput) {
-        rateInput.value = savedRate * 100;
-    }
-
     const salesElement = document.getElementById("totalSales");
     const commissionElement = document.getElementById("totalCommission");
     const earningsElement = document.getElementById("totalRestaurantEarnings");
@@ -7064,6 +7039,26 @@ window.adminShowCommission = async function () {
     adminShowLoading("💰 Feli Food Commission");
 
     try {
+        const user = auth.currentUser;
+if (!user) throw new Error("Please log in again.");
+
+const token = await user.getIdToken();
+
+const rateResponse = await fetch(
+    "https://feli-food.onrender.com/api/admin/commission",
+    {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    }
+);
+
+if (!rateResponse.ok) {
+    throw new Error("Could not load commission rate.");
+}
+
+const rateData = await rateResponse.json();
+const currentCommissionPercent = Number(rateData.percent ?? rateData.rate * 100);
         const snapshot = await getDocs(collection(db, "orders"));
 
         let totalSales = 0;
@@ -7112,6 +7107,28 @@ window.adminShowCommission = async function () {
         const area = document.getElementById("adminManagementContent");
 
         area.innerHTML = `
+        <div style="background:#fff7ed;padding:15px;border-radius:10px;margin:15px 0;">
+  <h3>⚙️ Feli Food Commission Rate</h3>
+  <p>Current rate: <strong id="adminCurrentCommissionRate">${currentCommissionPercent}%</strong></p>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <input
+      type="number"
+      id="adminCommissionRateInput"
+      value="${currentCommissionPercent}"
+      min="0"
+      max="100"
+      step="0.1"
+      placeholder="Enter rate (%)"
+      style="padding:10px;width:150px;"
+    >
+    <button onclick="adminSaveCommissionRate()"
+      style="background:#ff7a00;color:white;padding:10px 16px;border:0;border-radius:6px;">
+      Save Rate
+    </button>
+  </div>
+
+  <p id="adminCommissionRateMessage"></p>
+</div>
             <h3>💰 Feli Food Commission</h3>
 
             <div style="display:flex; flex-wrap:wrap; gap:12px; margin:15px 0;">
@@ -7168,7 +7185,52 @@ window.adminShowCommission = async function () {
         adminShowError(error);
     }
 };
+window.adminSaveCommissionRate = async function () {
+    if (!adminCheckAccess()) return;
 
+    const input = document.getElementById("adminCommissionRateInput");
+    const message = document.getElementById("adminCommissionRateMessage");
+
+    const percent = Number(input?.value);
+
+    if (!input || !message || input.value.trim() === "" ||
+        !Number.isFinite(percent) || percent < 0 || percent > 100) {
+        if (message) message.textContent = "Enter a valid rate between 0 and 100.";
+        return;
+    }
+
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Please log in again.");
+
+        const token = await user.getIdToken();
+
+        const response = await fetch(
+            "https://feli-food.onrender.com/api/admin/commission",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ percent })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || result.error || "Could not save commission rate.");
+        }
+
+        message.textContent = `Commission rate saved: ${percent}%`;
+        await adminShowCommission();
+
+    } catch (error) {
+        console.error("Commission rate update failed:", error);
+        message.textContent = error.message || "Failed to save commission rate.";
+    }
+};
 
 // 6. PAYMENTS
 
@@ -7854,22 +7916,7 @@ window.adminSendNotification = async function () {
 <!-- FELI FOOD COMMISSION DASHBOARD -->
 <div id="commissionSection" style="display:none; padding:20px;">
     <h2>💰 Feli Food Commission</h2>
-<div style="margin-bottom:20px;">
-    <strong>Commission Rate:</strong>
-    <input
-        type="number"
-        id="commissionRateInput"
-        value="5"
-        min="0"
-        max="100"
-        step="0.1"
-        style="width:80px; margin-left:10px;"
-    >
-    %
-    <button onclick="saveCommissionRate()" style="margin-left:10px;">
-        Save Rate
-    </button>
-</div>
+
     <div>
         <strong>Total Sales:</strong>
         GHS <span id="totalSales">0.00</span>

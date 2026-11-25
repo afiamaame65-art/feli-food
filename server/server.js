@@ -93,6 +93,82 @@ app.get("/", (req, res) => {
   res.send("Feli Food Paystack Server is running ✅");
 });
 
+
+// ---------- ADMIN COMMISSION SETTINGS ----------
+
+// Get the current commission rate (admin only)
+app.get("/api/admin/commission", requireFeliAdmin, async (req, res) => {
+  try {
+    const commissionDoc = await adminDb
+      .collection("appSettings")
+      .doc("commission")
+      .get();
+
+    let rate = 0.05;
+
+    if (commissionDoc.exists) {
+      const savedRate = Number(commissionDoc.data().rate);
+
+      if (Number.isFinite(savedRate) && savedRate >= 0 && savedRate <= 1) {
+        rate = savedRate;
+      }
+    }
+
+    return res.json({
+      success: true,
+      rate,
+      percent: rate * 100
+    });
+  } catch (error) {
+    console.error("Get commission setting error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not load commission rate."
+    });
+  }
+});
+
+// Update commission rate (verified admin only)
+app.put("/api/admin/commission", requireFeliAdmin, async (req, res) => {
+  try {
+    const percent = Number(req.body.percent);
+
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Commission rate must be between 0% and 100%."
+      });
+    }
+
+    const rate = percent / 100;
+
+    await adminDb
+      .collection("appSettings")
+      .doc("commission")
+      .set({
+        rate,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: req.feliAdmin.email
+      });
+
+    return res.json({
+      success: true,
+      rate,
+      percent
+    });
+  } catch (error) {
+    console.error("Update commission setting error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not save commission rate."
+    });
+  }
+});
+
+// ---------- END ADMIN COMMISSION SETTINGS ----------
+
 // SEND EMAIL OTP
 app.post("/api/auth/send-email-otp", async (req, res) => {
   try {
@@ -489,11 +565,24 @@ if (
 }
 
 
-    // Calculate Feli Food's confirmed 5% commission on the server.
-    const commissionRate = 0.05;
-    const commissionAmount = Number((total * commissionRate).toFixed(2));
-    const restaurantAmount = Number((total - commissionAmount).toFixed(2));
+    // Get the commission rate approved by Feli Food admin.
+const commissionSettings = await adminDb
+  .collection("appSettings")
+  .doc("commission")
+  .get();
 
+let commissionRate = 0.05;
+
+if (commissionSettings.exists) {
+  const savedRate = Number(commissionSettings.data().rate);
+
+  if (Number.isFinite(savedRate) && savedRate >= 0 && savedRate <= 1) {
+    commissionRate = savedRate;
+  }
+}
+
+const commissionAmount = Number((total * commissionRate).toFixed(2));
+const restaurantAmount = Number((total - commissionAmount).toFixed(2));
     // A hashed payment reference prevents duplicate order creation.
     const referenceId = crypto
       .createHash("sha256")
